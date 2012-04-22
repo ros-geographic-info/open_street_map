@@ -1,0 +1,15 @@
+<package>
+  <description brief="Open Street Map cartography">
+
+     Geographic mapping using Open Street Map data.
+
+  </description>
+  <author>Jack O'Quin</author>
+  <license>BSD</license>
+  <review status="experimental" notes=""/>
+  <url>http://ros.org/wiki/osm_cartography</url>
+  <depend package="geographic_msgs"/>
+
+</package>
+
+
