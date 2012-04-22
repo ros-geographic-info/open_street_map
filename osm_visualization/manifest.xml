@@ -8,9 +8,12 @@
   <license>BSD</license>
   <review status="experimental" notes=""/>
   <url>http://ros.org/wiki/osm_visualization</url>
+
   <depend package="geodesy"/>
   <depend package="geographic_msgs"/>
   <depend package="osm_cartography"/>
+  <depend package="std_msgs"/>
+  <depend package="visualization_msgs"/>
 
 </package>
 

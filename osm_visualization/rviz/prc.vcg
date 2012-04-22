@@ -1,0 +1,48 @@
+Background\ ColorB=0
+Background\ ColorG=0
+Background\ ColorR=0
+Camera\ Config=0.650401 1.5604 86.1276 -977270 303866 0
+Camera\ Type=rviz::OrbitViewController
+Fixed\ Frame=/map
+Grid.Alpha=0.5
+Grid.Cell\ Size=10
+Grid.ColorB=0.5
+Grid.ColorG=0.5
+Grid.ColorR=0.5
+Grid.Enabled=1
+Grid.Line\ Style=0
+Grid.Line\ Width=0.03
+Grid.Normal\ Cell\ Count=0
+Grid.OffsetX=-977270
+Grid.OffsetY=303866
+Grid.OffsetZ=0
+Grid.Plane=0
+Grid.Plane\ Cell\ Count=10
+Grid.Reference\ Frame=<Fixed Frame>
+Marker.Enabled=1
+Marker.Marker\ Topic=visualization_marker
+Marker.Queue\ Size=100
+Marker.waypoints_osm=1
+Property\ Grid\ Splitter=799,78
+Property\ Grid\ State=expanded=.Global Options,Marker.Enabled,Marker.Namespaces,Grid.Enabled,Grid.Offset;splitterratio=0.5
+QMainWindow=000000ff00000000fd00000003000000000000011d000003bffc0200000001fb000000100044006900730070006c006100790073010000001d000003bf000000ee00ffffff0000000100000130000003bffc0200000003fb0000001e0054006f006f006c002000500072006f0070006500720074006900650073000000001d000001250000006700fffffffb0000000a00560069006500770073010000001d00000309000000bb00fffffffb0000001200530065006c0065006300740069006f006e010000032c000000b00000006700ffffff00000003000007800000003efc0100000001fb0000000800540069006d0065010000000000000780000002bf00ffffff00000527000003bf00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+Target\ Frame=/map
+Tool\ 2D\ Nav\ GoalTopic=goal
+Tool\ 2D\ Pose\ EstimateTopic=initialpose
+[Display0]
+ClassName=rviz::MarkerDisplay
+Name=Marker
+[Display1]
+ClassName=rviz::GridDisplay
+Name=Grid
+[Views]
+0Name=PRC
+[Views/0]
+Config=0.785398 0.785398 10 -977270 303866 0
+Target=/map
+Type=rviz::OrbitViewController
+[Window]
+Height=1056
+Width=1920
+X=56
+Y=10
