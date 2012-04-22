@@ -61,13 +61,12 @@ def get_markers(geo_map):
     # create slightly transparent yellow disks for way-points
     index = 0
     for wp in geo_map.points:
-        marker = Marker()
-        marker.header = geo_map.header
-        marker.ns = "waypoints_osm"
-        marker.id = index
+        marker = Marker(header = geo_map.header,
+                        ns = "waypoints_osm",
+                        id = index,
+                        type = Marker.CYLINDER,
+                        action = Marker.ADD)
         index += 1
-        marker.type = Marker.CYLINDER;
-        marker.action = Marker.ADD;
 
         # TODO: convert lat/lon to UTM
         marker.pose.position.x = wp.position.longitude * 10000.0
@@ -78,6 +77,7 @@ def get_markers(geo_map):
         marker.scale = Vector3(x=1., y=1., z=0.1)
         marker.color = ColorRGBA(r=1., g=1., b=0., a=0.8)
         marker.lifetime = rospy.Duration()
+
         msg.markers.append(marker)
 
     return msg
@@ -99,16 +99,15 @@ def markers_node():
             msg = get_markers(resp.map)
         else:
             print('get_geographic_map failed, status: ', str(resp.status))
-            return
 
     except rospy.ServiceException, e:
         print("Service call failed: " + str(e))
-        return
 
-    # publish some visualization markers
-    while not rospy.is_shutdown():
-        pub.publish(msg)
-        rospy.sleep(10.0)
+    if msg != None:
+        # publish the visualization markers
+        while not rospy.is_shutdown():
+            pub.publish(msg)
+            rospy.sleep(1.0)
 
 if __name__ == '__main__':
     try:
