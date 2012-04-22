@@ -1,0 +1,17 @@
+<stack>
+  <description brief="Open Street Map">
+
+    ROS packages for working with Open Street Map geographic
+    information.
+
+  </description>
+  <author>Maintained by Jack O'Quin</author>
+  <license>BSD</license>  
+  <review status="experimental" notes=""/>
+  <url>http://ros.org/wiki/open_street_map</url>
+
+  <depend stack="common_msgs" /> <!-- visualization_msgs -->
+  <depend stack="geographic_info" /> <!-- geographic_msgs, geodesy -->
+  <depend stack="ros" />
+
+</stack>
