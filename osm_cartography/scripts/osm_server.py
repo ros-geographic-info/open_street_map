@@ -53,8 +53,9 @@ import osm_map
 
 def map_server(req):
 
-    url = req.url
-    rospy.loginfo('get_geographic_map: ' + str(url))
+    url = str(req.url)
+    rospy.loginfo('get_geographic_map: ' + url)
+    resp = GetGeographicMapResponse()
 
     # parse the URL
     filename = ''
@@ -64,19 +65,24 @@ def map_server(req):
         pkg_name, slash, pkg_path = url[10:].partition('/')
         pkg_dir = roslib.packages.get_pkg_dir(pkg_name)
         filename = pkg_dir + '/' + pkg_path
+    else:
+        error_msg = 'unsupported URL: ' + url
+        rospy.logerr(error_msg)
+        resp.success = False
+        resp.status = error_msg
+        return resp
 
     #print(filename)
     f = open(filename, 'r')
     parser = osm_map.ParseOSM()
 
-    resp = GetGeographicMapResponse()
     resp.success = True
     resp.status = filename
     resp.map = parser.get_map(f)
     resp.map.header.stamp = rospy.Time.now()
     resp.map.header.frame_id = '/map'
 
-    return(resp)
+    return resp
 
 def server_node():
     srv = rospy.Service('get_geographic_map', GetGeographicMap, map_server)
