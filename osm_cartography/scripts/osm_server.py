@@ -60,7 +60,6 @@ def map_server(req):
     filename = ''
     if url.startswith('file:///'):
         filename = url[7:]
-        print(filename)
     elif url.startswith('package://'):
         pkg_name, slash, pkg_path = url[10:].partition('/')
         pkg_dir = roslib.packages.get_pkg_dir(pkg_name)

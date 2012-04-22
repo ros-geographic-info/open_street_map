@@ -41,6 +41,8 @@ Map server.
 
 from __future__ import print_function
 
+import sys
+
 PKG_NAME = 'osm_visualization'
 import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
@@ -82,7 +84,7 @@ def get_markers(geo_map):
 
     return msg
 
-def markers_node():
+def markers_node(url):
 
     # TODO: make this topic latched
     pub = rospy.Publisher('visualization_marker_array', MarkerArray)
@@ -93,8 +95,7 @@ def markers_node():
     rospy.wait_for_service('get_geographic_map')
     try:
         get_map = rospy.ServiceProxy('get_geographic_map', GetGeographicMap)
-        resp = get_map('package://osm_cartography/tests/tiny.osm',
-                       BoundingBox())
+        resp = get_map(url, BoundingBox())
         if resp.success:
             msg = get_markers(resp.map)
         else:
@@ -110,6 +111,12 @@ def markers_node():
             rospy.sleep(1.0)
 
 if __name__ == '__main__':
+
+    url = 'package://osm_cartography/tests/tiny.osm'
+    if len(sys.argv) == 2:
+        url = sys.argv[1]
+        rospy.loginfo('map URL: ' + url)
+
     try:
-        markers_node()
+        markers_node(url)
     except rospy.ROSInterruptException: pass
