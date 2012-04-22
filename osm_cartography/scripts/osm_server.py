@@ -53,13 +53,22 @@ import osm_map
 
 def map_server(req):
 
-    rospy.loginfo('get_geographic_map:\n' + str(req))
+    url = req.url
+    rospy.loginfo('get_geographic_map: ' + str(url))
 
-    # ignore the request, read a little test map
-    pkg_dir = roslib.packages.get_pkg_dir(PKG_NAME)
-    filename = pkg_dir + '/tests/tiny.osm'
-    parser = osm_map.ParseOSM()
+    # parse the URL
+    filename = ''
+    if url.startswith('file:///'):
+        filename = url[7:]
+        print(filename)
+    elif url.startswith('package://'):
+        pkg_name, slash, pkg_path = url[10:].partition('/')
+        pkg_dir = roslib.packages.get_pkg_dir(pkg_name)
+        filename = pkg_dir + '/' + pkg_path
+
+    #print(filename)
     f = open(filename, 'r')
+    parser = osm_map.ParseOSM()
 
     resp = GetGeographicMapResponse()
     resp.success = True

@@ -93,7 +93,7 @@ def markers_node():
     rospy.wait_for_service('get_geographic_map')
     try:
         get_map = rospy.ServiceProxy('get_geographic_map', GetGeographicMap)
-        resp = get_map('package://' + PKG_NAME + '/tests/tiny.osm',
+        resp = get_map('package://osm_cartography/tests/tiny.osm',
                        BoundingBox())
         if resp.success:
             msg = get_markers(resp.map)
