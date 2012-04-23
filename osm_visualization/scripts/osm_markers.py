@@ -56,9 +56,16 @@ from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
 def get_markers(geo_map):
-    """Return visualization markers message for a GeographicMap
+    """Get markers for a GeographicMap.
+
+    Returns:
+        visualization markers message
     """
     msg = MarkerArray()
+    yellow = ColorRGBA(r=1., g=1., b=0., a=0.8)
+    forever = rospy.Duration()
+    dimensions = Vector3(x=1., y=1., z=0.1)
+    null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
 
     # create slightly transparent yellow disks for way-points
     index = 0
@@ -67,27 +74,32 @@ def get_markers(geo_map):
                         ns = "waypoints_osm",
                         id = index,
                         type = Marker.CYLINDER,
-                        action = Marker.ADD)
+                        action = Marker.ADD,
+                        scale = dimensions,
+                        color = yellow,
+                        lifetime = forever)
         index += 1
 
         # TODO: convert lat/lon to UTM
         marker.pose.position.x = wp.position.longitude * 10000.0
         marker.pose.position.y = wp.position.latitude * 10000.0
         # (ignoring altitude)
-
-        marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
-        marker.scale = Vector3(x=1., y=1., z=0.1)
-        marker.color = ColorRGBA(r=1., g=1., b=0., a=0.8)
-        marker.lifetime = rospy.Duration()
+        marker.pose.orientation = null_quaternion
 
         msg.markers.append(marker)
 
     return msg
 
 def markers_node(url):
+    """ROS node to publish visualization markers for a GeographicMap.
+
+    Args:
+        url: uniform resource locator for get_geographic_map.
+    """
 
     # TODO: make this topic latched
-    pub = rospy.Publisher('visualization_marker_array', MarkerArray)
+    pub = rospy.Publisher('visualization_marker_array',
+                          MarkerArray, latch=True)
     msg = None # (yet)
     rospy.init_node('osm_markers')
 
@@ -105,10 +117,10 @@ def markers_node(url):
         print("Service call failed: " + str(e))
 
     if msg != None:
-        # publish the visualization markers
-        while not rospy.is_shutdown():
-            pub.publish(msg)
-            rospy.sleep(1.0)
+        # publish visualization markers (this is a latched topic)
+        pub.publish(msg)
+        # keep message available until shut down
+        rospy.spin()
 
 if __name__ == '__main__':
 
