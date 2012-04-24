@@ -1,11 +1,11 @@
 Background\ ColorB=0
 Background\ ColorG=0
 Background\ ColorR=0
-Camera\ Config=0.650401 1.5604 86.1276 -977270 303866 0
-Camera\ Type=rviz::OrbitViewController
+Camera\ Config=0.889097 0.0100005 1186.47 622386 3.36202e+06 0
+Camera\ Type=rviz::XYOrbitViewController
 Fixed\ Frame=/map
 Grid.Alpha=0.5
-Grid.Cell\ Size=10
+Grid.Cell\ Size=100
 Grid.ColorB=0.5
 Grid.ColorG=0.5
 Grid.ColorR=0.5
@@ -13,8 +13,8 @@ Grid.Enabled=1
 Grid.Line\ Style=0
 Grid.Line\ Width=0.03
 Grid.Normal\ Cell\ Count=0
-Grid.OffsetX=-977270
-Grid.OffsetY=303866
+Grid.OffsetX=622100
+Grid.OffsetY=3.362e+06
 Grid.OffsetZ=0
 Grid.Plane=0
 Grid.Plane\ Cell\ Count=10
@@ -37,12 +37,27 @@ ClassName=rviz::GridDisplay
 Name=Grid
 [Views]
 0Name=PRC
+1Name=topdown
+2Name=fps
+3Name=orbit
 [Views/0]
-Config=0.785398 0.785398 10 -977270 303866 0
+Config=0.785398 0.785398 10 622191 3362024 0
+Target=/map
+Type=rviz::OrbitViewController
+[Views/1]
+Config=0.739298 622115 3.36206e+06 0
+Target=/map
+Type=rviz::FixedOrientationOrthoViewController
+[Views/2]
+Config=0.919119 3.14159 622693 3.36202e+06 639.06
+Target=/map
+Type=rviz::FPSViewController
+[Views/3]
+Config=0.919119 -2.53157e-06 3.4192e+06 -1.45112e+06 3.36203e+06 -2.71786e+06
 Target=/map
 Type=rviz::OrbitViewController
 [Window]
 Height=1056
 Width=1920
-X=56
-Y=10
+X=-1
+Y=24

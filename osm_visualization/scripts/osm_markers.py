@@ -41,11 +41,12 @@ Map server.
 
 from __future__ import print_function
 
-import sys
-
 PKG_NAME = 'osm_visualization'
 import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
+
+import sys
+import geodesy.utm
 
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.srv import GetGeographicMap
@@ -64,7 +65,7 @@ def get_markers(geo_map):
     msg = MarkerArray()
     yellow = ColorRGBA(r=1., g=1., b=0., a=0.8)
     forever = rospy.Duration()
-    dimensions = Vector3(x=1., y=1., z=0.1)
+    dimensions = Vector3(x=2., y=2., z=0.2)
     null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
 
     # create slightly transparent yellow disks for way-points
@@ -80,10 +81,11 @@ def get_markers(geo_map):
                         lifetime = forever)
         index += 1
 
-        # TODO: convert lat/lon to UTM
-        marker.pose.position.x = wp.position.longitude * 10000.0
-        marker.pose.position.y = wp.position.latitude * 10000.0
-        # (ignoring altitude)
+        # convert latitude and longitude to UTM (ignoring altitude)
+        pt = geodesy.utm.fromMsg(wp.position)
+        #print(pt)
+        marker.pose.position.x = pt.easting
+        marker.pose.position.y = pt.northing
         marker.pose.orientation = null_quaternion
 
         msg.markers.append(marker)
