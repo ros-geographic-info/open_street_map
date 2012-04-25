@@ -49,6 +49,7 @@ import sys
 import geodesy.utm
 
 from geographic_msgs.msg import BoundingBox
+from geographic_msgs.msg import GeoPoint
 from geographic_msgs.srv import GetGeographicMap
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
@@ -123,6 +124,40 @@ def get_markers(geo_map):
         if prev_point:
             marker.points.append(prev_point)
         msg.markers.append(marker)
+
+    # draw outline of map boundaries
+    red = ColorRGBA(r=1., g=0., b=0., a=0.8)
+    marker = Marker(header = geo_map.header,
+                    ns = "bounds_osm",
+                    id = 0,
+                    type = Marker.LINE_STRIP,
+                    action = Marker.ADD,
+                    scale = line_width,
+                    color = red,
+                    lifetime = forever)
+    # convert latitudes and longitudes to UTM (no altitude)
+    p0 = geodesy.utm.fromMsg(
+        GeoPoint(latitude = geo_map.bounds.min_latitude,
+                 longitude = geo_map.bounds.min_longitude))
+    p1 = geodesy.utm.fromMsg(
+        GeoPoint(latitude = geo_map.bounds.min_latitude,
+                 longitude = geo_map.bounds.max_longitude))
+    p2 = geodesy.utm.fromMsg(
+        GeoPoint(latitude = geo_map.bounds.max_latitude,
+                 longitude = geo_map.bounds.max_longitude))
+    p3 = geodesy.utm.fromMsg(
+        GeoPoint(latitude = geo_map.bounds.max_latitude,
+                 longitude = geo_map.bounds.min_longitude))
+    # this could be done a bit more efficiently
+    marker.points.append(Point(x = p0.easting, y = p0.northing))
+    marker.points.append(Point(x = p1.easting, y = p1.northing))
+    marker.points.append(Point(x = p1.easting, y = p1.northing))
+    marker.points.append(Point(x = p2.easting, y = p2.northing))
+    marker.points.append(Point(x = p2.easting, y = p2.northing))
+    marker.points.append(Point(x = p3.easting, y = p3.northing))
+    marker.points.append(Point(x = p3.easting, y = p3.northing))
+    marker.points.append(Point(x = p0.easting, y = p0.northing))
+    msg.markers.append(marker)
 
     return msg
 
