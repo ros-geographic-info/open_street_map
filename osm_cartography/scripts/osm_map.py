@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Software License Agreement (BSD License)
 #
-# Copyright (C) 2012, Austin Robot Technology
+# Copyright (C) 2012, Jack O'Quin
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,10 +14,9 @@
 #    copyright notice, this list of conditions and the following
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
-#  * Neither the name of Austin Robot Technology, Inc. nor the names
-#    of its contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
+#  * Neither the name of the author nor of other contributors may be
+#    used to endorse or promote products derived from this software
+#    without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -48,7 +47,7 @@ PKG_NAME = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
 
-import osm_uuid
+import geodesy.gen_uuid
 
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import KeyValue
@@ -59,19 +58,28 @@ from geographic_msgs.msg import WayPoint
 def get_required_attribute(el, key):
     """ Get attribute key of element el.
 
-    Raise ValueError if key not found.
+    :raises:  :exc:`ValueError` if key not found
     """
     val = el.get(key)
     if val == None:
         raise ValueError('required attribute missing: ' + key)
     return val
 
-def makeUniqueId(ns, id):
-    "Return UniqueID for id number in OSM namespace ns."
-    uu = osm_uuid.generate(ns, id)
-    msg = UniqueID()
-    msg.uuid = str(uu)
-    return msg
+def makeUniqueID(namespace, id):
+    """Make UniqueID message for id number in OSM sub-namespace ns.
+
+    :param namespace: OSM sub-namespace
+    :type  namespace: string
+    :param id: OSM identifier within that namespace
+    :type  id: int or string containing an integer
+
+    :returns: corresponding UniqueID message.
+    :raises:  :exc:`ValueError`
+    """
+    if not namespace in {'node', 'way', 'relation'}:
+        raise ValueError('invalid OSM namespace: ' + namespace)
+    ns = 'http://openstreetmap.org/' + namespace + '/'
+    return geodesy.gen_uuid.makeUniqueID(ns, id)
 
 class ParseOSM:
 
@@ -122,7 +130,7 @@ class ParseOSM:
             id = el.get('id')
             if id == None:
                 raise ValueError('node id missing')
-            way.id = makeUniqueId('node', id)
+            way.id = makeUniqueID('node', id)
     
             way.position.latitude = float(get_required_attribute(el, 'lat'))
             way.position.longitude = float(get_required_attribute(el, 'lon'))
@@ -142,11 +150,11 @@ class ParseOSM:
             id = el.get('id')
             if id == None:
                 raise ValueError('way id missing')
-            feature.id = makeUniqueId('way', id)
+            feature.id = makeUniqueID('way', id)
     
             for nd in el.iterfind('nd'):
                 way_id = get_required_attribute(nd, 'ref')
-                feature.components.append(makeUniqueId('node', way_id))
+                feature.components.append(makeUniqueID('node', way_id))
     
             for tag_list in el.iterfind('tag'):
                 kv = self.get_interesting_tag(tag_list)
@@ -164,13 +172,13 @@ class ParseOSM:
             id = el.get('id')
             if id == None:
                 raise ValueError('relation id missing')
-            feature.id = makeUniqueId('relation', id)
+            feature.id = makeUniqueID('relation', id)
     
             for mbr in el.iterfind('member'):
                 mbr_type = get_required_attribute(mbr, 'type')
                 if mbr_type in {'node', 'way', 'relation'}:
                     mbr_id = get_required_attribute(mbr, 'ref')
-                    feature.components.append(makeUniqueId(mbr_type, mbr_id))
+                    feature.components.append(makeUniqueID(mbr_type, mbr_id))
                 else:
                     print('unknown relation member type: ' + mbr_type)
     
