@@ -50,6 +50,7 @@ import geodesy.utm
 
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.srv import GetGeographicMap
+from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import ColorRGBA
@@ -65,8 +66,10 @@ def get_markers(geo_map):
     msg = MarkerArray()
     yellow = ColorRGBA(r=1., g=1., b=0., a=0.8)
     forever = rospy.Duration()
-    dimensions = Vector3(x=2., y=2., z=0.2)
+    cylinder_size = Vector3(x=2., y=2., z=0.2)
     null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
+
+    way_points = {}                     # points symbol table
 
     # create slightly transparent yellow disks for way-points
     index = 0
@@ -76,7 +79,7 @@ def get_markers(geo_map):
                         id = index,
                         type = Marker.CYLINDER,
                         action = Marker.ADD,
-                        scale = dimensions,
+                        scale = cylinder_size,
                         color = yellow,
                         lifetime = forever)
         index += 1
@@ -88,6 +91,31 @@ def get_markers(geo_map):
         marker.pose.position.y = pt.northing
         marker.pose.orientation = null_quaternion
 
+        way_points[wp.id.uuid] = (wp, pt)
+        msg.markers.append(marker)
+
+    #for key, val in way_points.iteritems():
+    #    print(str(val[0]), str(val[1]))
+
+    # create outline for way-point features
+    green = ColorRGBA(r=0., g=1., b=0., a=0.8)
+    line_width = Vector3(x=2.)
+    index = 0
+    for feature in geo_map.features:
+        marker = Marker(header = geo_map.header,
+                        ns = "features_osm",
+                        id = index,
+                        type = Marker.LINE_LIST,
+                        action = Marker.ADD,
+                        scale = line_width,
+                        color = green,
+                        lifetime = forever)
+        index += 1
+        for mbr in feature.components:
+            if mbr.uuid in way_points:
+                p = Point(x = way_points[mbr.uuid][1].easting,
+                          y = way_points[mbr.uuid][1].northing)
+                marker.points.append(p)
         msg.markers.append(marker)
 
     return msg
@@ -113,10 +141,10 @@ def markers_node(url):
         if resp.success:
             msg = get_markers(resp.map)
         else:
-            print('get_geographic_map failed, status: ', str(resp.status))
+            print('get_geographic_map failed, status:', str(resp.status))
 
     except rospy.ServiceException, e:
-        print("Service call failed: " + str(e))
+        print("Service call failed:", str(e))
 
     if msg != None:
         # publish visualization markers (this is a latched topic)
