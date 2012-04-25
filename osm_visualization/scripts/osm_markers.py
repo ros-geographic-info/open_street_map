@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Software License Agreement (BSD License)
 #
-# Copyright (C) 2012, Austin Robot Technology
+# Copyright (C) 2012, Jack O'Quin
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,10 +14,9 @@
 #    copyright notice, this list of conditions and the following
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
-#  * Neither the name of Austin Robot Technology, Inc. nor the names
-#    of its contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
+#  * Neither the name of the author nor of other contributors may be
+#    used to endorse or promote products derived from this software
+#    without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -135,28 +134,33 @@ def get_markers(geo_map):
                     scale = line_width,
                     color = red,
                     lifetime = forever)
+
     # convert latitudes and longitudes to UTM (no altitude)
-    p0 = geodesy.utm.fromMsg(
-        GeoPoint(latitude = geo_map.bounds.min_latitude,
-                 longitude = geo_map.bounds.min_longitude))
-    p1 = geodesy.utm.fromMsg(
-        GeoPoint(latitude = geo_map.bounds.min_latitude,
-                 longitude = geo_map.bounds.max_longitude))
-    p2 = geodesy.utm.fromMsg(
-        GeoPoint(latitude = geo_map.bounds.max_latitude,
-                 longitude = geo_map.bounds.max_longitude))
-    p3 = geodesy.utm.fromMsg(
-        GeoPoint(latitude = geo_map.bounds.max_latitude,
-                 longitude = geo_map.bounds.min_longitude))
-    # this could be done a bit more efficiently
-    marker.points.append(Point(x = p0.easting, y = p0.northing))
-    marker.points.append(Point(x = p1.easting, y = p1.northing))
-    marker.points.append(Point(x = p1.easting, y = p1.northing))
-    marker.points.append(Point(x = p2.easting, y = p2.northing))
-    marker.points.append(Point(x = p2.easting, y = p2.northing))
-    marker.points.append(Point(x = p3.easting, y = p3.northing))
-    marker.points.append(Point(x = p3.easting, y = p3.northing))
-    marker.points.append(Point(x = p0.easting, y = p0.northing))
+    utm0 = geodesy.utm.fromLatLong(geo_map.bounds.min_latitude,
+                                   geo_map.bounds.min_longitude)
+    utm1 = geodesy.utm.fromLatLong(geo_map.bounds.min_latitude,
+                                   geo_map.bounds.max_longitude)
+    utm2 = geodesy.utm.fromLatLong(geo_map.bounds.max_latitude,
+                                   geo_map.bounds.max_longitude)
+    utm3 = geodesy.utm.fromLatLong(geo_map.bounds.max_latitude,
+                                   geo_map.bounds.min_longitude)
+
+    # convert UTM points to geometry_msgs/Point
+    p0 = utm0.toPoint()
+    p1 = utm1.toPoint()
+    p2 = utm2.toPoint()
+    p3 = utm3.toPoint()
+
+    # add line strips to bounds marker
+    marker.points.append(p0)
+    marker.points.append(p1)
+    marker.points.append(p1)
+    marker.points.append(p2)
+    marker.points.append(p2)
+    marker.points.append(p3)
+    marker.points.append(p3)
+    marker.points.append(p0)
+    #print(marker)
     msg.markers.append(marker)
 
     return msg

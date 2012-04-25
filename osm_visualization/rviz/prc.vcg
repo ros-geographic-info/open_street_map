@@ -1,7 +1,7 @@
 Background\ ColorB=0
 Background\ ColorG=0
 Background\ ColorR=0
-Camera\ Config=0.889097 0.0100005 1186.47 622386 3.36202e+06 0
+Camera\ Config=1.5698 4.75319 2320.34 622386 3.36202e+06 0
 Camera\ Type=rviz::XYOrbitViewController
 Fixed\ Frame=/map
 Grid.Alpha=0.5
@@ -22,6 +22,8 @@ Grid.Reference\ Frame=<Fixed Frame>
 Marker.Enabled=1
 Marker.Marker\ Topic=visualization_marker
 Marker.Queue\ Size=100
+Marker.bounds_osm=1
+Marker.features_osm=1
 Marker.waypoints_osm=1
 Property\ Grid\ Splitter=799,78
 Property\ Grid\ State=expanded=.Global Options,Marker.Enabled,Marker.Namespaces,Grid.Enabled,Grid.Offset;splitterratio=0.5
