@@ -34,13 +34,12 @@
 # Revision $Id$
 
 """
-Generate geographic information maps based on Open Street Map data.
+Generate geographic information maps based on Open Street Map XML data.
 """
 
 from __future__ import print_function
 
 import os
-#import sys
 from xml.etree import ElementTree
 
 PKG_NAME = 'osm_cartography'
@@ -234,27 +233,3 @@ class ParseOSM:
                                    'steps'}
         else:
             self.ignored_values = ignored
-
-
-if __name__ == '__main__':
-
-    # unit tests:
-    pkg_dir = roslib.packages.get_pkg_dir(PKG_NAME)
-    parser = ParseOSM()
-
-    f = open(pkg_dir + '/tests/prc.osm', 'r')
-    m = parser.get_map(f)
-    print(m)
-
-    f = open(pkg_dir + '/tests/tiny.osm', 'r')
-    m = parser.get_map(f)
-    print(m)
-
-    # error tests:
-    f = open(pkg_dir + '/tests/empty.osm', 'r')
-    try:
-        m = parser.get_map(f)
-        print('ValueError not raised as expected')
-    except ValueError:
-        #print('ValueError raised as expected')
-        pass

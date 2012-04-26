@@ -48,7 +48,7 @@ import rospy
 from geographic_msgs.srv import GetGeographicMap
 from geographic_msgs.srv import GetGeographicMapResponse
 
-import osm_map
+from osm_cartography import xml_map
 
 def map_server(req):
 
@@ -73,7 +73,7 @@ def map_server(req):
 
     try:
         f = open(filename, 'r')
-        parser = osm_map.ParseOSM()
+        parser = xml_map.ParseOSM()
     except ValueError:
         error_msg = 'XML error: ' + url
         rospy.logerr(error_msg)

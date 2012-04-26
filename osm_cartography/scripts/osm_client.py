@@ -48,8 +48,6 @@ import rospy
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.srv import GetGeographicMap
 
-import osm_map
-
 def client_node():
 
     rospy.init_node('osm_client')
