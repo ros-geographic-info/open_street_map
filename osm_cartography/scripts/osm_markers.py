@@ -94,11 +94,10 @@ def get_markers(geo_map):
         way_points[wp.id.uuid] = (wp, pt)
         msg.markers.append(marker)
 
-    #for key, val in way_points.iteritems():
-    #    print(str(val[0]), str(val[1]))
-
     # create outline for map features
-    # :todo: differentiate tags for: highway, building, amenity, ...
+    #
+    # :todo: differentiate tags for: highway, building, bridge,
+    #        tunnel, amenity, etc.
     green = ColorRGBA(r=0., g=1., b=0., a=0.8)
     line_width = Vector3(x=2.)
     index = 0

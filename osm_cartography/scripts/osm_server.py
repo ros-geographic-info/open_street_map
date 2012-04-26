@@ -53,7 +53,7 @@ from osm_cartography import xml_map
 def map_server(req):
 
     url = str(req.url)
-    rospy.loginfo('get_geographic_map: ' + url)
+    rospy.loginfo('[get_geographic_map] ' + url)
     resp = GetGeographicMapResponse()
 
     # parse the URL
@@ -74,6 +74,13 @@ def map_server(req):
     try:
         f = open(filename, 'r')
         parser = xml_map.ParseOSM()
+        resp.map = parser.get_map(f)
+    except IOError:
+        error_msg = 'I/O error: ' + url
+        rospy.logerr(error_msg)
+        resp.success = False
+        resp.status = error_msg
+        return resp
     except ValueError:
         error_msg = 'XML error: ' + url
         rospy.logerr(error_msg)
@@ -83,7 +90,6 @@ def map_server(req):
 
     resp.success = True
     resp.status = filename
-    resp.map = parser.get_map(f)
     resp.map.header.stamp = rospy.Time.now()
     resp.map.header.frame_id = '/map'
 

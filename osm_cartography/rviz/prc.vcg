@@ -1,8 +1,8 @@
 Background\ ColorB=0
 Background\ ColorG=0
 Background\ ColorR=0
-Camera\ Config=0.759065 4.93786 2401.03 622554 3.36143e+06 0
-Camera\ Type=rviz::XYOrbitViewController
+Camera\ Config=0.729044 1.92625 622791 3.3604e+06 1505.18
+Camera\ Type=rviz::FPSViewController
 Fixed\ Frame=/map
 Grid.Alpha=0.5
 Grid.Cell\ Size=100
