@@ -40,7 +40,7 @@ Map server.
 
 from __future__ import print_function
 
-PKG_NAME = 'osm_visualization'
+PKG_NAME = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
 
@@ -97,7 +97,8 @@ def get_markers(geo_map):
     #for key, val in way_points.iteritems():
     #    print(str(val[0]), str(val[1]))
 
-    # create outline for way-point features
+    # create outline for map features
+    # :todo: differentiate tags for: highway, building, amenity, ...
     green = ColorRGBA(r=0., g=1., b=0., a=0.8)
     line_width = Vector3(x=2.)
     index = 0

@@ -1,7 +1,7 @@
 Background\ ColorB=0
 Background\ ColorG=0
 Background\ ColorR=0
-Camera\ Config=1.5698 4.75319 2320.34 622386 3.36202e+06 0
+Camera\ Config=0.759065 4.93786 2401.03 622554 3.36143e+06 0
 Camera\ Type=rviz::XYOrbitViewController
 Fixed\ Frame=/map
 Grid.Alpha=0.5

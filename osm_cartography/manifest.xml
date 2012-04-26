@@ -10,6 +10,8 @@
   <url>http://ros.org/wiki/osm_cartography</url>
   <depend package="geodesy"/>
   <depend package="geographic_msgs"/>
+  <depend package="std_msgs"/>
+  <depend package="visualization_msgs"/>
 
 </package>
 
