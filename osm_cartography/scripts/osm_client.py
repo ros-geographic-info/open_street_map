@@ -71,7 +71,6 @@ if __name__ == '__main__':
     url = 'package://' + PKG_NAME + '/tests/tiny.osm'
     if len(sys.argv) == 2:
         url = sys.argv[1]
-        rospy.loginfo('map URL: ' + url)
 
     try:
         client_node(url)
