@@ -204,9 +204,8 @@ class VizNode():
             if resp.success:
                 self.msg = self.get_markers(resp.map)
                 self.config = config    # save new URL
-                if config.map_url != '':
-                    # publish visualization markers (on a latched topic)
-                    self.pub.publish(self.msg)
+                # publish visualization markers (on a latched topic)
+                self.pub.publish(self.msg)
             else:
                 print('get_geographic_map failed, status:', str(resp.status))
 
