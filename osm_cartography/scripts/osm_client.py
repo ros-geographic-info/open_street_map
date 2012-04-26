@@ -45,18 +45,19 @@ PKG_NAME = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
 
+import sys
+
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.srv import GetGeographicMap
 
-def client_node():
+def client_node(url):
 
     rospy.init_node('osm_client')
     rospy.wait_for_service('get_geographic_map')
 
     try:
         get_map = rospy.ServiceProxy('get_geographic_map', GetGeographicMap)
-        resp = get_map('package://' + PKG_NAME + '/tests/tiny.osm',
-                       BoundingBox())
+        resp = get_map(url, BoundingBox())
         if resp.success:
             print(resp.map)
         else:
@@ -66,6 +67,12 @@ def client_node():
         print("Service call failed: " + str(e))
 
 if __name__ == '__main__':
+
+    url = 'package://' + PKG_NAME + '/tests/tiny.osm'
+    if len(sys.argv) == 2:
+        url = sys.argv[1]
+        rospy.loginfo('map URL: ' + url)
+
     try:
-        client_node()
+        client_node(url)
     except rospy.ROSInterruptException: pass

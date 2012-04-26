@@ -116,12 +116,10 @@ def get_markers(geo_map):
             if mbr.uuid in way_points:
                 p = Point(x = way_points[mbr.uuid][1].easting,
                           y = way_points[mbr.uuid][1].northing)
-                marker.points.append(p)
                 if prev_point:
                     marker.points.append(prev_point)
+                    marker.points.append(p)
                 prev_point = p
-        if prev_point:
-            marker.points.append(prev_point)
         msg.markers.append(marker)
 
     # draw outline of map boundaries
