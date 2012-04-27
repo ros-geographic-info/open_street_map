@@ -46,6 +46,7 @@ import rospy
 
 import sys
 import geodesy.utm
+import osm_cartography.way_point as way_point
 
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.msg import GeoPoint
@@ -104,15 +105,12 @@ class VizNode():
                             color = yellow,
                             lifetime = forever)
             index += 1
-    
-            # convert latitude and longitude to UTM (ignoring altitude)
-            pt = geodesy.utm.fromMsg(wp.position)
-            #print(pt)
-            marker.pose.position.x = pt.easting
-            marker.pose.position.y = pt.northing
+
+            # use easting and northing coordinates (ignoring altitude)
+            pt = way_point.WayPointUTM(wp)
+            marker.pose.position = pt.toPointXY()
             marker.pose.orientation = null_quaternion
-    
-            way_points[wp.id.uuid] = (wp, pt)
+            way_points[wp.id.uuid] = pt
             msg.markers.append(marker)
     
         # create outline for map features
@@ -135,8 +133,7 @@ class VizNode():
             prev_point = None
             for mbr in feature.components:
                 if mbr.uuid in way_points:
-                    p = Point(x = way_points[mbr.uuid][1].easting,
-                              y = way_points[mbr.uuid][1].northing)
+                    p = way_points[mbr.uuid].toPointXY()
                     if prev_point:
                         marker.points.append(prev_point)
                         marker.points.append(p)
