@@ -3,7 +3,6 @@
 PKG='osm_cartography'
 import roslib; roslib.load_manifest(PKG)
 
-import sys
 import unittest
 
 #from geographic_msgs.msg import GeographicMap
