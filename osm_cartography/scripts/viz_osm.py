@@ -83,17 +83,17 @@ class VizNode():
     def get_markers(self, geo_map):
         """Get markers for a GeographicMap.
 
-        :returns: visualization markers message
+        :post: self.msg = visualization markers message
         """
-        msg = MarkerArray()
+        self.msg = MarkerArray()
         yellow = ColorRGBA(r=1., g=1., b=0., a=0.8)
         forever = rospy.Duration()
-        cylinder_size = Vector3(x=2., y=2., z=0.2)
-        null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
     
         way_points = {}                     # points symbol table
 
         # create slightly transparent yellow disks for way-points
+        cylinder_size = Vector3(x=2., y=2., z=0.2)
+        null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
         index = 0
         for wp in geo_map.points:
             marker = Marker(header = geo_map.header,
@@ -111,7 +111,7 @@ class VizNode():
             marker.pose.position = pt.toPointXY()
             marker.pose.orientation = null_quaternion
             way_points[wp.id.uuid] = pt
-            msg.markers.append(marker)
+            self.msg.markers.append(marker)
     
         # create outline for map features
         #
@@ -138,7 +138,7 @@ class VizNode():
                         marker.points.append(prev_point)
                         marker.points.append(p)
                     prev_point = p
-            msg.markers.append(marker)
+            self.msg.markers.append(marker)
     
         # draw outline of map boundaries
         red = ColorRGBA(r=1., g=0., b=0., a=0.8)
@@ -177,9 +177,7 @@ class VizNode():
         marker.points.append(p3)
         marker.points.append(p0)
         #print(marker)
-        msg.markers.append(marker)
-    
-        return msg
+        self.msg.markers.append(marker)
     
     def reconfigure(self, config, level):
         """Dynamic reconfigure callback.
@@ -199,7 +197,7 @@ class VizNode():
         try:
             resp = self.get_map(config.map_url, BoundingBox())
             if resp.success:
-                self.msg = self.get_markers(resp.map)
+                self.get_markers(resp.map)
                 self.config = config    # save new URL
                 # publish visualization markers (on a latched topic)
                 self.pub.publish(self.msg)
