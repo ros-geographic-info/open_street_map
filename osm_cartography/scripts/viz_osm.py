@@ -85,81 +85,33 @@ class VizNode():
 
         :post: self.msg = visualization markers message
         """
+        self.geo_map = geo_map
         self.msg = MarkerArray()
-        yellow = ColorRGBA(r=1., g=1., b=0., a=0.8)
-        forever = rospy.Duration()
-    
-        way_points = {}                     # points symbol table
+        self.way_points = {}                     # points symbol table
+        self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
+        self.mark_features(ColorRGBA(r=0., g=1., b=0., a=0.8))
+        self.mark_boundaries(ColorRGBA(r=1., g=0., b=0., a=0.8))
 
-        # create slightly transparent yellow disks for way-points
-        cylinder_size = Vector3(x=2., y=2., z=0.2)
-        null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
-        index = 0
-        for wp in geo_map.points:
-            marker = Marker(header = geo_map.header,
-                            ns = "waypoints_osm",
-                            id = index,
-                            type = Marker.CYLINDER,
-                            action = Marker.ADD,
-                            scale = cylinder_size,
-                            color = yellow,
-                            lifetime = forever)
-            index += 1
-
-            # use easting and northing coordinates (ignoring altitude)
-            pt = way_point.WayPointUTM(wp)
-            marker.pose.position = pt.toPointXY()
-            marker.pose.orientation = null_quaternion
-            way_points[wp.id.uuid] = pt
-            self.msg.markers.append(marker)
-    
-        # create outline for map features
-        #
-        # :todo: differentiate tags for: highway, building, bridge,
-        #        tunnel, amenity, etc.
-        green = ColorRGBA(r=0., g=1., b=0., a=0.8)
-        line_width = Vector3(x=2.)
-        index = 0
-        for feature in geo_map.features:
-            marker = Marker(header = geo_map.header,
-                            ns = "features_osm",
-                            id = index,
-                            type = Marker.LINE_STRIP,
-                            action = Marker.ADD,
-                            scale = line_width,
-                            color = green,
-                            lifetime = forever)
-            index += 1
-            prev_point = None
-            for mbr in feature.components:
-                if mbr.uuid in way_points:
-                    p = way_points[mbr.uuid].toPointXY()
-                    if prev_point:
-                        marker.points.append(prev_point)
-                        marker.points.append(p)
-                    prev_point = p
-            self.msg.markers.append(marker)
-    
+    def mark_boundaries(self, color):
         # draw outline of map boundaries
-        red = ColorRGBA(r=1., g=0., b=0., a=0.8)
-        marker = Marker(header = geo_map.header,
+        marker = Marker(header = self.geo_map.header,
                         ns = "bounds_osm",
                         id = 0,
                         type = Marker.LINE_STRIP,
                         action = Marker.ADD,
-                        scale = line_width,
-                        color = red,
-                        lifetime = forever)
+                        scale = Vector3(x=2.),
+                        color = color,
+                        lifetime = rospy.Duration())
     
         # convert latitudes and longitudes to UTM (no altitude)
-        utm0 = geodesy.utm.fromLatLong(geo_map.bounds.min_latitude,
-                                       geo_map.bounds.min_longitude)
-        utm1 = geodesy.utm.fromLatLong(geo_map.bounds.min_latitude,
-                                       geo_map.bounds.max_longitude)
-        utm2 = geodesy.utm.fromLatLong(geo_map.bounds.max_latitude,
-                                       geo_map.bounds.max_longitude)
-        utm3 = geodesy.utm.fromLatLong(geo_map.bounds.max_latitude,
-                                       geo_map.bounds.min_longitude)
+        utm0 = geodesy.utm.fromLatLong(self.geo_map.bounds.min_latitude,
+                                       self.geo_map.bounds.min_longitude)
+        utm1 = geodesy.utm.fromLatLong(self.geo_map.bounds.min_latitude,
+                                       self.geo_map.bounds.max_longitude)
+        utm2 = geodesy.utm.fromLatLong(self.geo_map.bounds.max_latitude,
+                                       self.geo_map.bounds.max_longitude)
+        utm3 = geodesy.utm.fromLatLong(self.geo_map.bounds.max_latitude,
+                                       self.geo_map.bounds.min_longitude)
     
         # convert UTM points to geometry_msgs/Point
         p0 = utm0.toPoint()
@@ -176,8 +128,62 @@ class VizNode():
         marker.points.append(p3)
         marker.points.append(p3)
         marker.points.append(p0)
-        #print(marker)
         self.msg.markers.append(marker)
+
+    def mark_features(self, color):
+        """Create outline for map features
+
+        :param color: disk RGBA value
+
+        :todo: differentiate tags for: highway, building, bridge,
+               tunnel, amenity, etc.
+        """
+        index = 0
+        for feature in self.geo_map.features:
+            marker = Marker(header = self.geo_map.header,
+                            ns = "features_osm",
+                            id = index,
+                            type = Marker.LINE_STRIP,
+                            action = Marker.ADD,
+                            scale = Vector3(x=2.),
+                            color = color,
+                            lifetime = rospy.Duration())
+            index += 1
+            prev_point = None
+            for mbr in feature.components:
+                if mbr.uuid in self.way_points:
+                    p = self.way_points[mbr.uuid].toPointXY()
+                    if prev_point:
+                        marker.points.append(prev_point)
+                        marker.points.append(p)
+                    prev_point = p
+            self.msg.markers.append(marker)
+
+    def mark_way_points(self, color):
+        """Create slightly transparent yellow disks for way-points.
+
+        :param color: disk RGBA value
+        """
+        cylinder_size = Vector3(x=2., y=2., z=0.2)
+        null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
+        index = 0
+        for wp in self.geo_map.points:
+            marker = Marker(header = self.geo_map.header,
+                            ns = "waypoints_osm",
+                            id = index,
+                            type = Marker.CYLINDER,
+                            action = Marker.ADD,
+                            scale = cylinder_size,
+                            color = color,
+                            lifetime = rospy.Duration())
+            index += 1
+
+            # use easting and northing coordinates (ignoring altitude)
+            pt = way_point.WayPointUTM(wp)
+            marker.pose.position = pt.toPointXY()
+            marker.pose.orientation = null_quaternion
+            self.way_points[wp.id.uuid] = pt
+            self.msg.markers.append(marker)
     
     def reconfigure(self, config, level):
         """Dynamic reconfigure callback.
