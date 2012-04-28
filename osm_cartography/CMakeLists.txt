@@ -21,5 +21,8 @@ rosbuild_find_ros_package(dynamic_reconfigure)
 include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
 gencfg()
 
+# unit tests
 rosbuild_add_pyunit(tests/test_way_point.py)
 rosbuild_add_pyunit(tests/test_xml_map.py)
+# check all the launch files
+rosbuild_add_roslaunch_check(launch)
