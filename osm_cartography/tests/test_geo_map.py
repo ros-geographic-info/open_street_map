@@ -5,9 +5,8 @@ import roslib; roslib.load_manifest(PKG)
 
 import unittest
 
+from geographic_msgs.msg import BoundingBox
 from geographic_msgs.msg import GeographicMap
-#from geographic_msgs.msg import GeoPoint
-#from geographic_msgs.msg import WayPoint
 #from geometry_msgs.msg import Point
 
 from osm_cartography.geo_map import *
@@ -29,6 +28,22 @@ class TestGeoMap(unittest.TestCase):
         gm = GeoMap(GeographicMap())
         self.assertEqual(gm.n_points, 0)
         self.assertEqual(gm.n_features, 0)
+
+    def test_tiny_map(self):
+        parser = osm_cartography.xml_map.ParseOSM()
+        gm = GeoMap(parser.get_map('package://osm_cartography/tests/tiny.osm',
+                                   BoundingBox()))
+        # :todo: deeper results verification
+        self.assertEqual(gm.n_points, 3)
+        self.assertEqual(gm.n_features, 2)
+
+    def test_prc_map(self):
+        parser = osm_cartography.xml_map.ParseOSM()
+        gm = GeoMap(parser.get_map('package://osm_cartography/tests/prc.osm',
+                                   BoundingBox()))
+        # :todo: deeper results verification
+        self.assertEqual(gm.n_points, 986)
+        self.assertEqual(gm.n_features, 84)
 
 if __name__ == '__main__':
     import rosunit
