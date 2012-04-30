@@ -33,9 +33,9 @@
 # Revision $Id$
 
 """
-.. module:: way_point
+.. module:: geo_map
 
-Convenience classes for manipulating Open Street Map way-points.
+Class for manipulating GeographicMap data.
 
 """
 
@@ -47,36 +47,53 @@ import rospy
 
 import geodesy.utm
 
+from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import WayPoint
 from geometry_msgs.msg import Point
 
-class WayPointUTM():
+class GeoMap():
     """
-    :class:`WayPointUTM` represents a map WayPoint with UTM coordinates.
+    :class:`GeoMap` represents a map WayPoint with UTM coordinates.
     """
 
-    def __init__(self, waypt):
+    def __init__(self, gmap):
         """Constructor.
 
-        Collects relevant information from the way point message, and
-        creates the corresponding geodesy.utm.UTMPoint.
+        Collects relevant information from the geographic map message,
+        and provides convenient access to the data.
 
-        :param waypt: geographic_msgs/WayPoint message
+        :param gmap: geographic_msgs/GeographicMap message
         """
-        self.way_pt = waypt
-        # convert latitude and longitude to UTM (ignoring altitude)
-        self.utm = geodesy.utm.fromMsg(waypt.position)
+        self.gmap = gmap
 
-    def toPoint(self):
-        """Generate geometry_msgs/Point from WayPointUTM
+        # Initialize way point information.
+        self.way_point_ids = {}         # points symbol table
+        self.n_points = len(self.gmap.points)
+        for wid in xrange(self.n_points):
+            wp = self.gmap.points
+            self.way_point_ids[wp[wid].id.uuid] = wid
 
-           :returns: corresponding geometry_msgs/Point
-        """
-        return self.utm.toPoint()
+        # Create empty list of UTM points, corresponding to map points.
+        # They will be evaluated lazily, when first needed.
+        self.utm_points = [None for wid in xrange(self.n_points)]
 
-    def toPointXY(self):
-        """Convert WayPointUTM to flattened geometry_msgs/Point.
-
-           :returns: geometry_msgs/Point with X and Y coordinates, Z is 0.
-        """
-        return Point(x = self.utm.easting, y = self.utm.northing)
+        # Initialize feature information.
+        self.feature_ids = {}           # feature symbol table
+        self.n_features = len(self.gmap.features)
+        for fid in xrange(self.n_features):
+            feat = self.gmap.features
+            self.feature_ids[feat[fid].id.uuid] = fid
+    
+    #def toPoint(self):
+    #    """Generate geometry_msgs/Point from GeoMap
+    #
+    #       :returns: corresponding geometry_msgs/Point
+    #    """
+    #    return self.utm.toPoint()
+    #
+    #def toPointXY(self):
+    #    """Generate flattened geometry_msgs/Point from GeoMap.
+    #
+    #       :returns: geometry_msgs/Point with X and Y coordinates, Z is 0.
+    #    """
+    #    return Point(x = self.utm.easting, y = self.utm.northing)
