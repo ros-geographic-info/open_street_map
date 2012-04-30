@@ -14,8 +14,11 @@ Contents:
 Python API
 ^^^^^^^^^^
 
-:py:mod: osm_cartography.way_point.py
-:py:mod: osm_cartography.xml_map.py
+.. automodule:: osm_cartography.way_point
+   :members:
+
+.. automodule:: osm_cartography.xml_map
+   :members:
 
 Indices and tables
 ==================

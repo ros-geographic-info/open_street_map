@@ -33,7 +33,10 @@
 # Revision $Id$
 
 """
-Convenience classes for manipulating OSM way-points.
+.. module:: way_point
+
+Convenience classes for manipulating Open Street Map way-points.
+
 """
 
 from __future__ import print_function
@@ -44,14 +47,12 @@ import rospy
 
 import geodesy.utm
 
-#from geographic_msgs.msg import BoundingBox
-from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import WayPoint
-#from geographic_msgs.msg import GeoPoint
 from geometry_msgs.msg import Point
 
 class WayPointUTM():
-    """Representation of a map WayPoint with UTM coordinates.
+    """
+    :class:`WayPointUTM` represents a map WayPoint with UTM coordinates.
     """
 
     def __init__(self, waypt):
