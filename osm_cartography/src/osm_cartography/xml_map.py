@@ -99,20 +99,34 @@ class ParseOSM:
             pair.value = get_required_attribute(el, 'v')
         return pair
     
-    def get_map(self, xmlFile):
-        """Get GeographicMap from xml data.
+    def get_map(self, url, bounds):
+        """Get GeographicMap from XML data.
 
-        Message header not filled in.
+        :param url:    Uniform Resource Locator for map.
+        :param bounds: Desired bounding box for map (presently ignored).
+        :returns: GeographicMap message with header not filled in.
         """
-    
+
+        # parse the URL
+        filename = ''
+        if url.startswith('file:///'):
+            filename = url[7:]
+        elif url.startswith('package://'):
+            pkg_name, slash, pkg_path = url[10:].partition('/')
+            pkg_dir = roslib.packages.get_pkg_dir(pkg_name)
+            filename = pkg_dir + '/' + pkg_path
+        else:
+            raise ValueError('unsupported URL: ' + url)
+
         map = GeographicMap()
         xm = None
         try:
-            xm = ElementTree.parse(xmlFile)
+            f = open(filename, 'r')
+            xm = ElementTree.parse(f)
         except IOError:
-            raise ValueError('unable to read ' + str(xmlFile))
+            raise ValueError('unable to read ' + str(url))
         except ElementTree.ParseError:
-            raise ValueError('XML parse failed for ' + str(xmlFile))
+            raise ValueError('XML parse failed for ' + str(url))
         osm = xm.getroot()
     
         # get map bounds

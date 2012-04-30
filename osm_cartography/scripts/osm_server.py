@@ -56,42 +56,18 @@ def map_server(req):
     rospy.loginfo('[get_geographic_map] ' + url)
     resp = GetGeographicMapResponse()
 
-    # parse the URL
-    filename = ''
-    if url.startswith('file:///'):
-        filename = url[7:]
-    elif url.startswith('package://'):
-        pkg_name, slash, pkg_path = url[10:].partition('/')
-        pkg_dir = roslib.packages.get_pkg_dir(pkg_name)
-        filename = pkg_dir + '/' + pkg_path
-    else:
-        error_msg = 'unsupported URL: ' + url
-        rospy.logerr(error_msg)
-        resp.success = False
-        resp.status = error_msg
-        return resp
-
     try:
-        f = open(filename, 'r')
         parser = xml_map.ParseOSM()
-        resp.map = parser.get_map(f)
-    except IOError:
-        error_msg = 'I/O error: ' + url
+        resp.map = parser.get_map(url, req.bounds)
+    except (IOError, ValueError) as error_msg:
         rospy.logerr(error_msg)
         resp.success = False
         resp.status = error_msg
-        return resp
-    except ValueError:
-        error_msg = 'XML error: ' + url
-        rospy.logerr(error_msg)
-        resp.success = False
-        resp.status = error_msg
-        return resp
-
-    resp.success = True
-    resp.status = filename
-    resp.map.header.stamp = rospy.Time.now()
-    resp.map.header.frame_id = '/map'
+    else:
+        resp.success = True
+        resp.status = url
+        resp.map.header.stamp = rospy.Time.now()
+        resp.map.header.frame_id = '/map'
 
     return resp
 

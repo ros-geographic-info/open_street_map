@@ -5,7 +5,7 @@ import roslib; roslib.load_manifest(PKG)
 
 import unittest
 
-#from geographic_msgs.msg import GeographicMap
+from geographic_msgs.msg import BoundingBox
 
 from osm_cartography import xml_map
 
@@ -15,27 +15,37 @@ class TestXmlMap(unittest.TestCase):
 
     def test_tiny_osm_file(self):
         # :todo: deeper results verification
-        pkg_dir = roslib.packages.get_pkg_dir(PKG)
         parser = xml_map.ParseOSM()
-        f = open(pkg_dir + '/tests/tiny.osm', 'r')
-        m = parser.get_map(f)
+        m = parser.get_map('package://osm_cartography/tests/tiny.osm',
+                           BoundingBox())
         self.assertEqual(len(m.points), 3)
         self.assertEqual(len(m.features), 2)
 
     def test_prc_osm_file(self):
         # :todo: deeper results verification
-        pkg_dir = roslib.packages.get_pkg_dir(PKG)
         parser = xml_map.ParseOSM()
-        f = open(pkg_dir + '/tests/prc.osm', 'r')
-        m = parser.get_map(f)
+        m = parser.get_map('package://osm_cartography/tests/prc.osm',
+                           BoundingBox())
         self.assertEqual(len(m.points), 986)
         self.assertEqual(len(m.features), 84)
 
-    def test_empty_osm_file(self):
-        pkg_dir = roslib.packages.get_pkg_dir(PKG)
+    def test_invalid_url(self):
         parser = xml_map.ParseOSM()
-        f = open(pkg_dir + '/tests/empty.osm', 'r')
-        self.assertRaises(ValueError, parser.get_map, f)
+        self.assertRaises(ValueError, parser.get_map,
+                          'ftp://osm_cartography/tests/prc.osm',
+                          BoundingBox())
+
+    def test_empty_osm_file(self):
+        parser = xml_map.ParseOSM()
+        self.assertRaises(ValueError, parser.get_map,
+                          'package://osm_cartography/tests/empty.osm',
+                          BoundingBox())
+
+    def test_missing_osm_file(self):
+        parser = xml_map.ParseOSM()
+        self.assertRaises(ValueError, parser.get_map,
+                          'package://osm_cartography/tests/missing.osm',
+                          BoundingBox())
 
 if __name__ == '__main__':
     import rosunit
