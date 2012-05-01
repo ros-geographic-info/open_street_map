@@ -65,12 +65,6 @@ class WuPoint():
         """
         self.way_pt = waypt
 
-        # copy way point data here for convenient access
-        # (is this a good idea??)
-        self.uuid = waypt.id.uuid
-        self.position = waypt.position
-        self.tags = waypt.tags
-
         if utm:
             self.utm = utm
         else:
@@ -85,6 +79,20 @@ class WuPoint():
         # uses python3-compatible str.format() method:
         return str(self.way_pt) + '\n' + str(self.utm)
 
+    def position(self):
+        """Get way point position.
+
+        :returns: Corresponding GeoPoint object.
+        """
+        return self.way_pt.position
+
+    def tags(self):
+        """Get way point tags.
+
+        :returns: Corresponding KeyValue tags message.
+        """
+        return self.way_pt.tags
+
     def toPoint(self):
         """Generate geometry_msgs/Point from WuPoint
 
@@ -98,3 +106,10 @@ class WuPoint():
            :returns: geometry_msgs/Point with X and Y coordinates, Z is 0.
         """
         return Point(x = self.utm.easting, y = self.utm.northing)
+
+    def uuid(self):
+        """Get way point UniqueID.
+
+        :returns: Corresponding UniqueID message.
+        """
+        return self.way_pt.id.uuid

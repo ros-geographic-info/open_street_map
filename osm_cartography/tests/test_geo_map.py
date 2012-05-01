@@ -70,8 +70,8 @@ class TestGeoMap(unittest.TestCase):
         gpts = GeoMapPoints(gm)
         i = 0
         for w in gpts:
-            self.assertEqual(w.uuid, uuids[i])
-            self.assertEqual(gpts[uuids[i]].uuid, uuids[i])
+            self.assertEqual(w.uuid(), uuids[i])
+            self.assertEqual(gpts[uuids[i]].uuid(), uuids[i])
             self.assertAlmostEqual(w.utm.easting, eastings[i], places=3)
             self.assertAlmostEqual(w.utm.northing, northings[i], places=3)
             i += 1
@@ -109,10 +109,10 @@ class TestGeoMap(unittest.TestCase):
         uu = '8e0b7d8a-c433-5c42-be2e-fbd97ddff9ac'
         self.assertTrue(uu in gpts)
         wpt = gpts[uu]
-        self.assertEqual(wpt.uuid, uu)
-        self.assertAlmostEqual(wpt.position.latitude, 30.370945, places=3)
-        self.assertAlmostEqual(wpt.position.longitude, -97.739392, places=3)
-        self.assertNotEqual(wpt.position.altitude, wpt.position.altitude)
+        self.assertEqual(wpt.uuid(), uu)
+        self.assertAlmostEqual(wpt.position().latitude, 30.370945, places=3)
+        self.assertAlmostEqual(wpt.position().longitude, -97.739392, places=3)
+        self.assertNotEqual(wpt.position().altitude, wpt.position().altitude)
         self.assertAlmostEqual(wpt.utm.easting, 621132.815, places=3)
         self.assertAlmostEqual(wpt.utm.northing, 3360564.035, places=3)
 
