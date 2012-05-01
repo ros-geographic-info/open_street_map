@@ -98,6 +98,56 @@ class GeoMap():
             self.utm_points[index] = utm_pt
         return osm_cartography.way_point.WayPointUTM(way_pt, utm=utm_pt)
 
+class GeoMapFeatures():
+    """
+    :class:`GeoMapFeatures` provides an filtering iterator for the
+    features in a GeoMap.
+    """
+
+    def __init__(self, gmap):
+        """Constructor.
+
+        Collects relevant feature information from the geographic map
+        message, and provides convenient access to the data.
+
+        :param gmap: geographic_msgs/GeographicMap message
+        """
+        self.gmap = gmap
+
+    def __contains__(self, item):
+        """ Feature set membership. """
+        return item in self.gmap.feature_ids
+
+    def __getitem__(self, key):
+        """ Feature accessor.
+    
+        :returns: Matching Feature.
+        :raises: :exc:`KeyError` if no such feature
+        """
+        index = self.gmap.feature_ids[key]
+        return self.gmap.features[index]
+
+    def __iter__(self):
+        """ Features iterator. """
+        self.iter_index = 0
+        return self
+
+    def __len__(self):
+        """Features vector length."""
+        return len(self.gmap.gmap.features)
+
+    def next(self):
+        """ Next matching feature.
+
+        :returns: WayPointUTM object for next point
+        :raises: :exc:`StopIteration` when finished.
+        """
+        i = self.iter_index
+        if i >= self.gmap.n_features:
+            raise StopIteration
+        self.iter_index = i + 1
+        return self.gmap.gmap.features[i]
+
 class GeoMapPoints():
     """
     :class:`GeoMapPoints` provides an iterator for the way points in a
@@ -107,8 +157,8 @@ class GeoMapPoints():
     def __init__(self, gmap):
         """Constructor.
 
-        Collects relevant information from the geographic map message,
-        and provides convenient access to the data.
+        Collects relevant way point information from the geographic
+        map message, and provides convenient access to the data.
 
         :param gmap: geographic_msgs/GeographicMap message
         """

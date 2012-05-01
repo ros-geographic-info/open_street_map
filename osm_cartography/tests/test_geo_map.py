@@ -36,16 +36,28 @@ class TestGeoMap(unittest.TestCase):
             self.fail(msg='there are no points in this map')
             i += 1
         self.assertEqual(i, 0)
-
         with self.assertRaises(KeyError):
             x = gpts['da7c242f-2efe-5175-9961-49cc621b80b9']
+
+    def test_empty_map_features(self):
+        gm = GeoMap(GeographicMap())
+        self.assertEqual(gm.n_features, 0)
+
+        # test GeoMapFeatures iterator with empty list
+        gf = GeoMapFeatures(gm)
+        i = 0
+        for f in gf:
+            self.fail(msg='there are no features in this map')
+            i += 1
+        self.assertEqual(i, 0)
+        with self.assertRaises(KeyError):
+            x = gf['da7c242f-2efe-5175-9961-49cc621b80b9']
 
     def test_tiny_map(self):
         parser = osm_cartography.xml_map.ParseOSM()
         gm = GeoMap(parser.get_map('package://osm_cartography/tests/tiny.osm',
                                    BoundingBox()))
         self.assertEqual(gm.n_points, 3)
-        self.assertEqual(gm.n_features, 2)
 
         # expected way point IDs and UTM coordinates
         uuids = ['da7c242f-2efe-5175-9961-49cc621b80b9',
@@ -59,10 +71,31 @@ class TestGeoMap(unittest.TestCase):
         i = 0
         for w in gpts:
             self.assertEqual(w.uuid, uuids[i])
+            self.assertEqual(gpts[uuids[i]].uuid, uuids[i])
             self.assertAlmostEqual(w.utm.easting, eastings[i], places=3)
             self.assertAlmostEqual(w.utm.northing, northings[i], places=3)
             i += 1
         self.assertEqual(i, 3)
+        self.assertEqual(len(gpts), 3)
+
+    def test_tiny_map_features(self):
+        parser = osm_cartography.xml_map.ParseOSM()
+        gm = GeoMap(parser.get_map('package://osm_cartography/tests/tiny.osm',
+                                   BoundingBox()))
+        self.assertEqual(gm.n_features, 2)
+
+        # expected feature IDs
+        uuids = ['8e8b355f-f1e8-5d82-827d-91e688e807e4',
+                 '199dd143-8309-5401-9728-6ca5e1c6e235']
+
+        # test GeoMapFeatures iterator
+        gf = GeoMapFeatures(gm)
+        i = 0
+        for f in gf:
+            self.assertEqual(f.id.uuid, uuids[i])
+            i += 1
+        self.assertEqual(i, 2)
+        self.assertEqual(len(gf), 2)
 
     def test_prc_map(self):
         parser = osm_cartography.xml_map.ParseOSM()
