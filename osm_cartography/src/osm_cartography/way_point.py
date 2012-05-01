@@ -55,7 +55,7 @@ class WayPointUTM():
     :class:`WayPointUTM` represents a map WayPoint with UTM coordinates.
     """
 
-    def __init__(self, waypt):
+    def __init__(self, waypt, utm=None):
         """Constructor.
 
         Collects relevant information from the way point message, and
@@ -64,8 +64,26 @@ class WayPointUTM():
         :param waypt: geographic_msgs/WayPoint message
         """
         self.way_pt = waypt
-        # convert latitude and longitude to UTM (ignoring altitude)
-        self.utm = geodesy.utm.fromMsg(waypt.position)
+
+        # copy way point data here for convenient access
+        # (is this a good idea??)
+        self.uuid = waypt.id.uuid
+        self.position = waypt.position
+        self.tags = waypt.tags
+
+        if utm:
+            self.utm = utm
+        else:
+            # convert latitude and longitude to UTM (ignoring altitude)
+            self.utm = geodesy.utm.fromMsg(waypt.position)
+
+    def __str__(self):
+        """Overloaded str() operator.
+        
+        :returns: string representation of WayPointUTM
+        """
+        # uses python3-compatible str.format() method:
+        return str(self.way_pt) + '\n' + str(self.utm)
 
     def toPoint(self):
         """Generate geometry_msgs/Point from WayPointUTM

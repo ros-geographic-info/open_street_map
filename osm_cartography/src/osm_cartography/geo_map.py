@@ -46,6 +46,7 @@ import roslib; roslib.load_manifest(PKG)
 import rospy
 
 import geodesy.utm
+import osm_cartography.way_point
 
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import WayPoint
@@ -84,6 +85,19 @@ class GeoMap():
             feat = self.gmap.features
             self.feature_ids[feat[fid].id.uuid] = fid
 
+    def get_point_with_utm(self, index):
+        """ Get way point with UTM coordinates.
+
+        :param index: Index of point in self.
+        :returns: Corresponding WayPointUTM object.
+        """
+        way_pt = self.gmap.points[index]
+        utm_pt = self.utm_points[index]
+        if not utm_pt:
+            utm_pt = geodesy.utm.fromMsg(way_pt.position)
+            self.utm_points[index] = utm_pt
+        return osm_cartography.way_point.WayPointUTM(way_pt, utm=utm_pt)
+
 class GeoMapPoints():
     """
     :class:`GeoMapPoints` provides an iterator for the way points in a
@@ -105,15 +119,17 @@ class GeoMapPoints():
         return item in self.gmap.way_point_ids
 
     def __getitem__(self, key):
-        """ Points accessor. """
+        """ Points accessor.
+
+        :returns: WayPointUTM object for matching point
+        :raises: :exc:`KeyError` if no such point
+        """
         index = self.gmap.way_point_ids[key]
-        way_pt = self.gmap.gmap.points[index]
-        if not self.gmap.utm_points[index]:
-            self.gmap.utm_points[index] = geodesy.utm.fromMsg(way_pt.position)
-        return (way_pt, self.gmap.utm_points[index])
+        return self.gmap.get_point_with_utm(index)
 
     def __iter__(self):
         """ Points iterator. """
+        self.iter_index = 0
         return self
 
     def __len__(self):
@@ -123,9 +139,14 @@ class GeoMapPoints():
     def next(self):
         """ Next matching point.
 
+        :returns: WayPointUTM object for next point
         :raises: :exc:`StopIteration` when finished.
         """
-        
+        i = self.iter_index
+        if i >= self.gmap.n_points:
+            raise StopIteration
+        self.iter_index = i + 1
+        return self.gmap.get_point_with_utm(i)
 
     #def toPoint(self):
     #    """Generate geometry_msgs/Point from GeoMap
