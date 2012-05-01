@@ -17,12 +17,4 @@
     <param name="map_url" value="$(arg map_url)" />
   </node>
 
-  <!-- start dynamic reconfigure GUI -->
-  <node pkg="dynamic_reconfigure" type="reconfigure_gui" name="reconfigure_gui"
-        args="viz_osm" />
-
-  <!-- start rviz (not an explicit dependency in this package)
-  <node pkg="rviz" type="rviz" name="rviz" />
-  -->
-
 </launch>

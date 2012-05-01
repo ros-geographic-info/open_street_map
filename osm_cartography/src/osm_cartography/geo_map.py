@@ -85,6 +85,16 @@ class GeoMap():
             feat = self.gmap.features
             self.feature_ids[feat[fid].id.uuid] = fid
 
+    def bounds(self):
+        """ Get GeographicMap message BoundingBox
+        """
+        return self.gmap.bounds
+
+    def header(self):
+        """ Get GeographicMap message Header
+        """
+        return self.gmap.header
+
     def get_point_with_utm(self, index):
         """ Get way point with UTM coordinates.
 
