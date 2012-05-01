@@ -92,7 +92,7 @@ class VizNode():
         self.msg = MarkerArray()
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
         self.mark_features(ColorRGBA(r=0., g=1., b=0., a=0.8))
-        self.mark_boundaries(ColorRGBA(r=1., g=0., b=0., a=0.8))
+        self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.8))
 
     def mark_boundaries(self, color):
         # draw outline of map boundaries
@@ -105,22 +105,18 @@ class VizNode():
                         color = color,
                         lifetime = rospy.Duration())
     
-        # convert latitudes and longitudes to UTM (no altitude)
+        # Convert bounds latitudes and longitudes to UTM (no
+        # altitude), convert UTM points to geometry_msgs/Point
+        # :todo: invent a better map bounds interface
         bounds = self.geo_map.bounds()
-        utm0 = geodesy.utm.fromLatLong(bounds.min_latitude,
-                                       bounds.min_longitude)
-        utm1 = geodesy.utm.fromLatLong(bounds.min_latitude,
-                                       bounds.max_longitude)
-        utm2 = geodesy.utm.fromLatLong(bounds.max_latitude,
-                                       bounds.max_longitude)
-        utm3 = geodesy.utm.fromLatLong(bounds.max_latitude,
-                                       bounds.min_longitude)
-    
-        # convert UTM points to geometry_msgs/Point
-        p0 = utm0.toPoint()
-        p1 = utm1.toPoint()
-        p2 = utm2.toPoint()
-        p3 = utm3.toPoint()
+        p0 = geodesy.utm.fromLatLong(bounds.min_latitude,
+                                     bounds.min_longitude).toPoint()
+        p1 = geodesy.utm.fromLatLong(bounds.min_latitude,
+                                     bounds.max_longitude).toPoint()
+        p2 = geodesy.utm.fromLatLong(bounds.max_latitude,
+                                     bounds.max_longitude).toPoint()
+        p3 = geodesy.utm.fromLatLong(bounds.max_latitude,
+                                     bounds.min_longitude).toPoint()
     
         # add line strips to bounds marker
         marker.points.append(p0)
@@ -154,8 +150,9 @@ class VizNode():
             index += 1
             prev_point = None
             for mbr in feature.components:
-                if mbr.uuid in self.map_points:
-                    p = self.map_points[mbr.uuid].toPointXY()
+                wu_point = self.map_points.get(mbr.uuid)
+                if wu_point:    # this component is a way point
+                    p = wu_point.toPointXY()
                     if prev_point:
                         marker.points.append(prev_point)
                         marker.points.append(p)
@@ -163,7 +160,7 @@ class VizNode():
             self.msg.markers.append(marker)
 
     def mark_way_points(self, color):
-        """Create slightly transparent yellow disks for way-points.
+        """Create slightly transparent disks for way-points.
 
         :param color: disk RGBA value
         """
@@ -189,13 +186,14 @@ class VizNode():
         """Dynamic reconfigure callback.
 
         :param config: New configuration.
-        :param level:  0x00000001 if URL changed (currently ignored).
+        :param level:  0x00000001 bit set if URL changed (ignored).
 
         :returns: New config if valid, old one otherwise. That updates
                   the dynamic reconfigure GUI window.
         """
-        # treat an empty URL as a valid, "do nothing" command
+        # treat an empty URL as a valid "do nothing" command
         if config.map_url == '':
+            self.config = config        # save new config
             return config
 
         rospy.loginfo('Map URL: ' + str(config.map_url))

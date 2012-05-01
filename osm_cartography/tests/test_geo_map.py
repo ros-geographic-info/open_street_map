@@ -27,7 +27,6 @@ class TestGeoMap(unittest.TestCase):
     def test_empty_map(self):
         gm = GeoMap(GeographicMap())
         self.assertEqual(gm.n_points, 0)
-        self.assertEqual(gm.n_features, 0)
 
         # test GeoMapPoints iterator with empty list
         gpts = GeoMapPoints(gm)
@@ -36,8 +35,11 @@ class TestGeoMap(unittest.TestCase):
             self.fail(msg='there are no points in this map')
             i += 1
         self.assertEqual(i, 0)
+
+        uu = 'da7c242f-2efe-5175-9961-49cc621b80b9'
         with self.assertRaises(KeyError):
-            x = gpts['da7c242f-2efe-5175-9961-49cc621b80b9']
+            x = gpts[uu]
+        self.assertIsNone(gpts.get(uu))
 
     def test_empty_map_features(self):
         gm = GeoMap(GeographicMap())
@@ -50,8 +52,9 @@ class TestGeoMap(unittest.TestCase):
             self.fail(msg='there are no features in this map')
             i += 1
         self.assertEqual(i, 0)
+        uu = 'da7c242f-2efe-5175-9961-49cc621b80b9'
         with self.assertRaises(KeyError):
-            x = gf['da7c242f-2efe-5175-9961-49cc621b80b9']
+            x = gf[uu]
 
     def test_tiny_map(self):
         parser = osm_cartography.xml_map.ParseOSM()
@@ -106,13 +109,18 @@ class TestGeoMap(unittest.TestCase):
         gpts = GeoMapPoints(gm)
         self.assertEqual(len(gpts), 986)
         self.assertFalse('00000000-c433-5c42-be2e-fbd97ddff9ac' in gpts)
+        self.assertIsNone(gpts.get('00000000-c433-5c42-be2e-fbd97ddff9ac'))
+
         uu = '8e0b7d8a-c433-5c42-be2e-fbd97ddff9ac'
         self.assertTrue(uu in gpts)
         wpt = gpts[uu]
         self.assertEqual(wpt.uuid(), uu)
+        self.assertIsNotNone(gpts.get(uu))
+        self.assertEqual(gpts.get(uu).uuid(), uu)
+
         self.assertAlmostEqual(wpt.position().latitude, 30.370945, places=3)
         self.assertAlmostEqual(wpt.position().longitude, -97.739392, places=3)
-        self.assertNotEqual(wpt.position().altitude, wpt.position().altitude)
+        self.assertTrue(wpt.is2D())
         self.assertAlmostEqual(wpt.utm.easting, 621132.815, places=3)
         self.assertAlmostEqual(wpt.utm.northing, 3360564.035, places=3)
 

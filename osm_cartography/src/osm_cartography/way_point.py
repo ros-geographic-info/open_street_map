@@ -79,6 +79,16 @@ class WuPoint():
         # uses python3-compatible str.format() method:
         return str(self.way_pt) + '\n' + str(self.utm)
 
+    def is2D(self):
+        """Is this way point 2D?
+
+        For 2D points, the altitude is represented as a float NaN.
+
+        :returns: True if no altitude provided.
+        """
+        geo_point = self.way_pt.position
+        return geo_point.altitude != geo_point.altitude
+
     def position(self):
         """Get way point position.
 

@@ -95,7 +95,7 @@ class GeoMap():
         """
         return self.gmap.header
 
-    def get_point_with_utm(self, index):
+    def _get_point_with_utm(self, index):
         """ Get way point with UTM coordinates.
 
         :param index: Index of point in self.
@@ -181,11 +181,12 @@ class GeoMapPoints():
     def __getitem__(self, key):
         """ Points accessor.
 
-        :returns: WuPoint object for matching point
+        :param key: UUID of desired point.
+        :returns: Named WuPoint.
         :raises: :exc:`KeyError` if no such point
         """
         index = self.gmap.way_point_ids[key]
-        return self.gmap.get_point_with_utm(index)
+        return self.gmap._get_point_with_utm(index)
 
     def __iter__(self):
         """ Points iterator. """
@@ -196,28 +197,27 @@ class GeoMapPoints():
         """Points vector length."""
         return len(self.gmap.gmap.points)
 
-    def next(self):
-        """ Next matching point.
+    def get(self, key, default=None):
+        """ Get point, if defined.
 
-        :returns: WuPoint object for next point
+        :param key: UUID of desired point.
+        :param default: value to return if no such point.
+        :returns: Named WuPoint, if successful; otherwise default.
+        """
+        index = self.gmap.way_point_ids.get(key)
+        if index != None:
+            return self.gmap._get_point_with_utm(index)
+        else:
+            return default
+
+    def next(self):
+        """ Next point.
+
+        :returns: Next WuPoint.
         :raises: :exc:`StopIteration` when finished.
         """
         i = self.iter_index
         if i >= self.gmap.n_points:
             raise StopIteration
         self.iter_index = i + 1
-        return self.gmap.get_point_with_utm(i)
-
-    #def toPoint(self):
-    #    """Generate geometry_msgs/Point from GeoMap
-    #
-    #       :returns: corresponding geometry_msgs/Point
-    #    """
-    #    return self.utm.toPoint()
-    #
-    #def toPointXY(self):
-    #    """Generate flattened geometry_msgs/Point from GeoMap.
-    #
-    #       :returns: geometry_msgs/Point with X and Y coordinates, Z is 0.
-    #    """
-    #    return Point(x = self.utm.easting, y = self.utm.northing)
+        return self.gmap._get_point_with_utm(i)
