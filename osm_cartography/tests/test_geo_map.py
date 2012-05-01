@@ -42,19 +42,20 @@ class TestGeoMap(unittest.TestCase):
         gm = GeoMap(parser.get_map('package://osm_cartography/tests/prc.osm',
                                    BoundingBox()))
         # :todo: deeper results verification
-        self.assertEqual(gm.n_points, 986)
         self.assertEqual(gm.n_features, 84)
 
         gpts = GeoMapPoints(gm)
+        self.assertEqual(len(gpts), 986)
+        self.assertFalse('00000000-c433-5c42-be2e-fbd97ddff9ac' in gpts)
         uu = '8e0b7d8a-c433-5c42-be2e-fbd97ddff9ac'
         self.assertTrue(uu in gpts)
-        wpt, upt = gpts[uu]
+        wpt, utm = gpts[uu]
         self.assertEqual(wpt.id.uuid, uu)
         self.assertAlmostEqual(wpt.position.latitude, 30.370945, places=3)
         self.assertAlmostEqual(wpt.position.longitude, -97.739392, places=3)
         self.assertNotEqual(wpt.position.altitude, wpt.position.altitude)
-        self.assertAlmostEqual(upt.easting, 621132.815, places=3)
-        self.assertAlmostEqual(upt.northing, 3360564.035, places=3)
+        self.assertAlmostEqual(utm.easting, 621132.815, places=3)
+        self.assertAlmostEqual(utm.northing, 3360564.035, places=3)
 
 if __name__ == '__main__':
     import rosunit

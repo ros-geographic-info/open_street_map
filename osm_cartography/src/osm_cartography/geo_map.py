@@ -118,7 +118,7 @@ class GeoMapPoints():
 
     def __len__(self):
         """Points vector length."""
-        return self.gmap.points.len()
+        return len(self.gmap.gmap.points)
 
     def next(self):
         """ Next matching point.
