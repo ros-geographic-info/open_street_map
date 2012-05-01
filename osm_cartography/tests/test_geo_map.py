@@ -45,6 +45,17 @@ class TestGeoMap(unittest.TestCase):
         self.assertEqual(gm.n_points, 986)
         self.assertEqual(gm.n_features, 84)
 
+        gpts = GeoMapPoints(gm)
+        uu = '8e0b7d8a-c433-5c42-be2e-fbd97ddff9ac'
+        self.assertTrue(uu in gpts)
+        wpt, upt = gpts[uu]
+        self.assertEqual(wpt.id.uuid, uu)
+        self.assertAlmostEqual(wpt.position.latitude, 30.370945, places=3)
+        self.assertAlmostEqual(wpt.position.longitude, -97.739392, places=3)
+        self.assertNotEqual(wpt.position.altitude, wpt.position.altitude)
+        self.assertAlmostEqual(upt.easting, 621132.815, places=3)
+        self.assertAlmostEqual(upt.northing, 3360564.035, places=3)
+
 if __name__ == '__main__':
     import rosunit
     rosunit.unitrun(PKG, 'test_geo_map_py', TestGeoMap) 

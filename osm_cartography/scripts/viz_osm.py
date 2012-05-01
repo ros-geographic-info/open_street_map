@@ -202,6 +202,10 @@ class VizNode():
 
         try:
             resp = self.get_map(config.map_url, BoundingBox())
+        except rospy.ServiceException as e:
+            rospy.logerr("Service call failed:", str(e))
+            # ignore new config, it failed
+        else:                           # get_map returned
             if resp.success:
                 self.get_markers(resp.map)
                 self.config = config    # save new URL
@@ -209,9 +213,6 @@ class VizNode():
                 self.pub.publish(self.msg)
             else:
                 print('get_geographic_map failed, status:', str(resp.status))
-
-        except rospy.ServiceException, e:
-            rospy.logerr("Service call failed:", str(e))
 
         return self.config
     

@@ -83,7 +83,50 @@ class GeoMap():
         for fid in xrange(self.n_features):
             feat = self.gmap.features
             self.feature_ids[feat[fid].id.uuid] = fid
-    
+
+class GeoMapPoints():
+    """
+    :class:`GeoMapPoints` provides an iterator for the way points in a
+    GeoMap.
+    """
+
+    def __init__(self, gmap):
+        """Constructor.
+
+        Collects relevant information from the geographic map message,
+        and provides convenient access to the data.
+
+        :param gmap: geographic_msgs/GeographicMap message
+        """
+        self.gmap = gmap
+
+    def __contains__(self, item):
+        """ Points set membership. """
+        return item in self.gmap.way_point_ids
+
+    def __getitem__(self, key):
+        """ Points accessor. """
+        index = self.gmap.way_point_ids[key]
+        way_pt = self.gmap.gmap.points[index]
+        if not self.gmap.utm_points[index]:
+            self.gmap.utm_points[index] = geodesy.utm.fromMsg(way_pt.position)
+        return (way_pt, self.gmap.utm_points[index])
+
+    def __iter__(self):
+        """ Points iterator. """
+        return self
+
+    def __len__(self):
+        """Points vector length."""
+        return self.gmap.points.len()
+
+    def next(self):
+        """ Next matching point.
+
+        :raises: :exc:`StopIteration` when finished.
+        """
+        
+
     #def toPoint(self):
     #    """Generate geometry_msgs/Point from GeoMap
     #
