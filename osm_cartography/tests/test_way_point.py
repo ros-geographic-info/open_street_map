@@ -30,7 +30,7 @@ class TestWayPoint(unittest.TestCase):
                       longitude = -97.728524,
                       altitude = 209.0)
         msg = WayPoint(position = ll)
-        pt = WayPointUTM(msg)
+        pt = WuPoint(msg)
         self.assertEqual(pt.way_pt, msg)
         self.assertEqual(str(pt.utm),
                          'UTM: [622159.338, 3362168.303, 209.000, 14R]')
@@ -49,28 +49,28 @@ class TestWayPoint(unittest.TestCase):
         lon = -177.0
         zone = 1
         while lon < 180.0:
-            pt = WayPointUTM(fromLatLong(-80.0, lon))
+            pt = WuPoint(fromLatLong(-80.0, lon))
             self.assertEqual(pt.utm.gridZone(), (zone, 'C'))
-            pt = WayPointUTM(fromLatLong(-30.385315, lon))
+            pt = WuPoint(fromLatLong(-30.385315, lon))
             self.assertEqual(pt.utm.gridZone(), (zone, 'J'))
-            pt = WayPointUTM(fromLatLong(-0.000001, lon))
+            pt = WuPoint(fromLatLong(-0.000001, lon))
             self.assertEqual(pt.utm.gridZone(), (zone, 'M'))
-            pt = WayPointUTM(fromLatLong(0.0, lon))
+            pt = WuPoint(fromLatLong(0.0, lon))
             self.assertEqual(pt.utm.gridZone(), (zone, 'N'))
-            pt = WayPointUTM(fromLatLong(30.385315, lon))
+            pt = WuPoint(fromLatLong(30.385315, lon))
             self.assertEqual(pt.utm.gridZone(), (zone, 'R'))
-            pt = WayPointUTM(fromLatLong(84.0, lon))
+            pt = WuPoint(fromLatLong(84.0, lon))
             self.assertEqual(pt.utm.gridZone(), (zone, 'X'))
             lon += 6.0
             zone += 1
 
     def test_invalid_points(self):
-        self.assertRaises(ValueError, WayPointUTM,
+        self.assertRaises(ValueError, WuPoint,
                           fromLatLong(90.385315, -97.728524))
-        self.assertRaises(ValueError, WayPointUTM,
+        self.assertRaises(ValueError, WuPoint,
                           fromLatLong(30.385315, -197.728524))
         # this will be valid when we add UPS support for the poles:
-        self.assertRaises(ValueError, WayPointUTM,
+        self.assertRaises(ValueError, WuPoint,
                           fromLatLong(-80.385315,-97.728524))
 
 if __name__ == '__main__':

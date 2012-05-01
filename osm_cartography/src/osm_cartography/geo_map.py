@@ -89,14 +89,14 @@ class GeoMap():
         """ Get way point with UTM coordinates.
 
         :param index: Index of point in self.
-        :returns: Corresponding WayPointUTM object.
+        :returns: Corresponding WuPoint object.
         """
         way_pt = self.gmap.points[index]
         utm_pt = self.utm_points[index]
         if not utm_pt:
             utm_pt = geodesy.utm.fromMsg(way_pt.position)
             self.utm_points[index] = utm_pt
-        return osm_cartography.way_point.WayPointUTM(way_pt, utm=utm_pt)
+        return osm_cartography.way_point.WuPoint(way_pt, utm=utm_pt)
 
 class GeoMapFeatures():
     """
@@ -139,7 +139,7 @@ class GeoMapFeatures():
     def next(self):
         """ Next matching feature.
 
-        :returns: WayPointUTM object for next point
+        :returns: WuPoint object for next point
         :raises: :exc:`StopIteration` when finished.
         """
         i = self.iter_index
@@ -171,7 +171,7 @@ class GeoMapPoints():
     def __getitem__(self, key):
         """ Points accessor.
 
-        :returns: WayPointUTM object for matching point
+        :returns: WuPoint object for matching point
         :raises: :exc:`KeyError` if no such point
         """
         index = self.gmap.way_point_ids[key]
@@ -189,7 +189,7 @@ class GeoMapPoints():
     def next(self):
         """ Next matching point.
 
-        :returns: WayPointUTM object for next point
+        :returns: WuPoint object for next point
         :raises: :exc:`StopIteration` when finished.
         """
         i = self.iter_index

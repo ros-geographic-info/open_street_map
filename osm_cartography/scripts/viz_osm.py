@@ -179,7 +179,7 @@ class VizNode():
             index += 1
 
             # use easting and northing coordinates (ignoring altitude)
-            pt = way_point.WayPointUTM(wp)
+            pt = way_point.WuPoint(wp)
             marker.pose.position = pt.toPointXY()
             marker.pose.orientation = null_quaternion
             self.way_points[wp.id.uuid] = pt

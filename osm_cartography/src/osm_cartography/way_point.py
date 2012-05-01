@@ -50,9 +50,9 @@ import geodesy.utm
 from geographic_msgs.msg import WayPoint
 from geometry_msgs.msg import Point
 
-class WayPointUTM():
+class WuPoint():
     """
-    :class:`WayPointUTM` represents a map WayPoint with UTM coordinates.
+    :class:`WuPoint` represents a map WayPoint with UTM coordinates.
     """
 
     def __init__(self, waypt, utm=None):
@@ -80,20 +80,20 @@ class WayPointUTM():
     def __str__(self):
         """Overloaded str() operator.
         
-        :returns: string representation of WayPointUTM
+        :returns: string representation of WuPoint
         """
         # uses python3-compatible str.format() method:
         return str(self.way_pt) + '\n' + str(self.utm)
 
     def toPoint(self):
-        """Generate geometry_msgs/Point from WayPointUTM
+        """Generate geometry_msgs/Point from WuPoint
 
            :returns: corresponding geometry_msgs/Point
         """
         return self.utm.toPoint()
 
     def toPointXY(self):
-        """Convert WayPointUTM to flattened geometry_msgs/Point.
+        """Convert WuPoint to flattened geometry_msgs/Point.
 
            :returns: geometry_msgs/Point with X and Y coordinates, Z is 0.
         """
