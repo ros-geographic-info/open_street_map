@@ -93,7 +93,7 @@ class RoadNetNode():
             oneway = self.is_oneway(feature) # :todo: add to GeoMap class??
             start = None
             for mbr in feature.components:
-                pt = self.map_points.get(mbr.uuid)
+                pt = self.map_points.get(mbr.uuid).toWayPoint()
                 if pt is not None:      # known way point?
                     self.msg.points.append(pt)
                     end = UniqueID(uuid = mbr.uuid)
