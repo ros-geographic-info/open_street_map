@@ -117,6 +117,13 @@ class WuPoint():
         """
         return Point(x = self.utm.easting, y = self.utm.northing)
 
+    def toWayPoint(self):
+        """Convert WuPoint to geographic_msgs/WayPoint
+
+           :returns: corresponding geographic_msgs/WayPoint
+        """
+        return self.way_pt
+
     def uuid(self):
         """Get way point UniqueID.
 

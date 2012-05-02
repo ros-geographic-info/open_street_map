@@ -31,7 +31,7 @@ class TestWayPoint(unittest.TestCase):
                       altitude = 209.0)
         msg = WayPoint(position = ll)
         pt = WuPoint(msg)
-        self.assertEqual(pt.way_pt, msg)
+        self.assertEqual(pt.toWayPoint(), msg)
         self.assertEqual(str(pt.utm),
                          'UTM: [622159.338, 3362168.303, 209.000, 14R]')
 
