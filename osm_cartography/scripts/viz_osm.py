@@ -45,9 +45,11 @@ import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
 
 import sys
+import itertools
 import geodesy.utm
-import osm_cartography.geo_map as geo_map
-import osm_cartography.way_point as way_point
+
+#import osm_cartography.way_point as way_point
+from osm_cartography.geo_map import *
 
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.msg import GeoPoint
@@ -86,13 +88,24 @@ class VizNode():
 
         :post: self.msg = visualization markers message
         """
-        self.geo_map = geo_map.GeoMap(msg)
-        self.map_features = geo_map.GeoMapFeatures(self.geo_map)
-        self.map_points = geo_map.GeoMapPoints(self.geo_map)
+        self.geo_map = GeoMap(msg)
+        self.map_features = GeoMapFeatures(self.geo_map)
+        self.map_points = GeoMapPoints(self.geo_map)
         self.msg = MarkerArray()
-        self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
-        self.mark_features(ColorRGBA(r=0., g=1., b=0., a=0.8))
         self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.8))
+        self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
+        self.mark_features(lambda(f): match_tags(f, road_tags),
+                           ColorRGBA(r=8., g=0.2, b=0.2, a=0.8),
+                           "roads_osm")
+        self.mark_features(lambda(f): match_tags(f, {'building'}),
+                           ColorRGBA(r=0., g=0.3, b=0.7, a=0.8),
+                           "buildings_osm")
+        self.mark_features(lambda(f): match_tags(f, {'railway'}),
+                           ColorRGBA(r=0., g=0.7, b=.7, a=0.8),
+                           "railroad_osm")
+        self.mark_features(lambda(f): match_tags(f, {'amenity', 'landuse'}),
+                           ColorRGBA(r=0., g=1., b=0., a=0.5),
+                           "other_osm")
 
     def mark_boundaries(self, color):
         # draw outline of map boundaries
@@ -129,18 +142,21 @@ class VizNode():
         marker.points.append(p0)
         self.msg.markers.append(marker)
 
-    def mark_features(self, color):
+    def mark_features(self, predicate, color, namespace):
         """Create outline for map features
 
-        :param color: disk RGBA value
+        :param predicate: function to match desired features
+        :param color: RGBA value
+        :param namespace: Rviz namespace.
 
         :todo: differentiate tags for: highway, building, bridge,
                tunnel, amenity, etc.
         """
         index = 0
-        for feature in self.map_features:
+        for feature in itertools.ifilter(predicate,
+                                         self.map_features):
             marker = Marker(header = self.geo_map.header(),
-                            ns = "features_osm",
+                            ns = namespace,
                             id = index,
                             type = Marker.LINE_STRIP,
                             action = Marker.ADD,
