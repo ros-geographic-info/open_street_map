@@ -10,10 +10,12 @@
   <arg name="map_url" default="package://osm_cartography/tests/prc.osm" />
 
   <!-- start map server -->
-  <node pkg="osm_cartography" type="osm_server.py" name="osm_server" />
+  <include file="$(find osm_cartography)/launch/viz_osm.launch" >
+    <arg name="map_url" value="$(arg map_url)" />
+  </include>
 
   <!-- start map visualization -->
-  <node pkg="osm_cartography" type="viz_osm.py" name="viz_osm" >
+  <node pkg="road_network" type="road_network.py" name="road_network" >
     <param name="map_url" value="$(arg map_url)" />
   </node>
 
