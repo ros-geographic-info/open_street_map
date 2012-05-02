@@ -84,7 +84,7 @@ class ParseOSM:
 
     def __init__(self, interesting=None, ignored=None):
         self.set_tags(interesting, ignored)
-            
+
     def get_interesting_tag(self, el):
         """Returns a KeyValue pair, if key is in interesting_tags.
     
@@ -94,6 +94,19 @@ class ParseOSM:
         pair = None
         key = el.get('k')
         if key != None and key in self.interesting_tags:
+            pair = KeyValue()
+            pair.key = key
+            pair.value = get_required_attribute(el, 'v')
+        return pair
+
+    def get_tag(self, el):
+        """ Get a KeyValue pair from a <tag> element.
+    
+        :returns: KeyValue pair if any, None otherwise.
+        """
+        pair = None
+        key = el.get('k')
+        if key != None:
             pair = KeyValue()
             pair.key = key
             pair.value = get_required_attribute(el, 'v')
@@ -150,7 +163,7 @@ class ParseOSM:
             way.position.altitude = float(el.get('ele', float('nan')))
     
             for tag_list in el.iterfind('tag'):
-                kv = self.get_interesting_tag(tag_list)
+                kv = self.get_tag(tag_list)
                 if kv != None:
                     way.tags.append(kv)
     
@@ -170,10 +183,8 @@ class ParseOSM:
                 feature.components.append(makeUniqueID('node', way_id))
     
             for tag_list in el.iterfind('tag'):
-                kv = self.get_interesting_tag(tag_list)
+                kv = self.get_tag(tag_list)
                 if kv != None:
-                    if kv.value in self.ignored_values:
-                        continue # skip this <way>
                     feature.tags.append(kv)
     
             map.features.append(feature)
@@ -196,10 +207,8 @@ class ParseOSM:
                     print('unknown relation member type: ' + mbr_type)
     
             for tag_list in el.iterfind('tag'):
-                kv = self.get_interesting_tag(tag_list)
+                kv = self.get_tag(tag_list)
                 if kv != None:
-                    if kv.value in self.ignored_values:
-                        continue # skip this <relation>
                     feature.tags.append(kv)
     
             map.features.append(feature)

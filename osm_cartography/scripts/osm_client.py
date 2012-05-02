@@ -68,9 +68,12 @@ def client_node(url):
 
 if __name__ == '__main__':
 
-    url = 'package://' + PKG_NAME + '/tests/tiny.osm'
+    url = ''
     if len(sys.argv) == 2:
         url = sys.argv[1]
+    else:
+        print('usage: osm_client <map_URL>')
+        sys.exit(-9)
 
     try:
         client_node(url)
