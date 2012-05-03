@@ -100,7 +100,8 @@ class RoadNetNode():
         self.geo_map = geo_map.GeoMap(msg)
         self.map_features = geo_map.GeoMapFeatures(self.geo_map)
         self.map_points = geo_map.GeoMapPoints(self.geo_map)
-        self.msg = RouteNetwork(bounds = msg.bounds)
+        self.msg = RouteNetwork(header = msg.header,
+                                bounds = msg.bounds)
 
         # process each feature tagged as a road
         for feature in itertools.ifilter(is_road, self.map_features):
