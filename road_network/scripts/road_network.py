@@ -46,6 +46,7 @@ import rospy
 import sys
 import itertools
 import geodesy.utm
+import geodesy.gen_uuid
 
 from osm_cartography import geo_map     # :todo: move to geodesy??
 #from road_network.geo_graph import *
@@ -59,6 +60,19 @@ from geographic_msgs.srv import GetGeographicMap
 # dynamic parameter reconfiguration
 from dynamic_reconfigure.server import Server as ReconfigureServer
 import road_network.cfg.RoadNetworkConfig as Config
+
+def is_oneway(feature):
+    ':returns: True if feature is one way.'
+    return False            # :todo: check the tags
+
+def is_road(feature):
+    ':returns: True if feature is drivable.'
+    return geo_map.match_tags(feature, geo_map.road_tags)
+
+def makeSeg(start, end):
+    uu = geodesy.gen_uuid.makeUniqueID('http://ros.org/wiki/road_network/'
+                                       + str(start) + '/' + str(end))
+    return RouteSegment(id = uu, start = start, end = end)
 
 class RoadNetNode():
 
@@ -89,8 +103,8 @@ class RoadNetNode():
         self.msg = RouteNetwork(bounds = msg.bounds)
 
         # process each feature tagged as a road
-        for feature in itertools.ifilter(self.is_road, self.map_features):
-            oneway = self.is_oneway(feature) # :todo: add to GeoMap class??
+        for feature in itertools.ifilter(is_road, self.map_features):
+            oneway = is_oneway(feature)         # :todo: add to geo_map module?
             start = None
             for mbr in feature.components:
                 pt = self.map_points.get(mbr.uuid).toWayPoint()
@@ -98,20 +112,10 @@ class RoadNetNode():
                     self.msg.points.append(pt)
                     end = UniqueID(uuid = mbr.uuid)
                     if start is not None:
-                        self.msg.segments.append(RouteSegment(start = start,
-                                                              end = end))
+                        self.msg.segments.append(makeSeg(start, end))
                         if not oneway:
-                            self.msg.segments.append(RouteSegment(start = end,
-                                                                  end = start))
+                            self.msg.segments.append(makeSeg(end, start))
                     start = end
-
-    def is_oneway(self, feat):
-        ':returns: True if feat is one way.'
-        return False            # :todo: check the tags
-
-    def is_road(self, feat):
-        ':returns: True if feat is drivable.'
-        return geo_map.match_tags(feat, geo_map.road_tags)
     
     def reconfigure(self, config, level):
         """Dynamic reconfigure callback.
