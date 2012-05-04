@@ -34,7 +34,7 @@
 # Revision $Id$
 
 """
-Create road network messages for geographic information maps.
+Create route network messages for geographic information maps.
 """
 
 from __future__ import print_function
@@ -49,7 +49,6 @@ import geodesy.utm
 import geodesy.gen_uuid
 
 from osm_cartography import geo_map     # :todo: move to geodesy??
-#from road_network.geo_graph import *
 
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.msg import RouteNetwork
@@ -59,27 +58,37 @@ from geographic_msgs.srv import GetGeographicMap
 
 # dynamic parameter reconfiguration
 from dynamic_reconfigure.server import Server as ReconfigureServer
-import road_network.cfg.RoadNetworkConfig as Config
+import road_network.cfg.RouteNetworkConfig as Config
 
 def is_oneway(feature):
-    ':returns: True if feature is one way.'
-    return False            # :todo: check the tags
 
-def is_road(feature):
+    """ One-way route predicate.
+    :returns: True if feature is one way.
+    :todo: check the tags
+    """
+    return False            #
+
+def is_route(feature):
     ':returns: True if feature is drivable.'
     return geo_map.match_tags(feature, geo_map.road_tags)
 
 def makeSeg(start, end):
+    """ Make RouteSegment message.
+
+    :param start: Initial UUID.
+    :param end: Final UUID.
+    :returns: RouteSegment message.
+    """
     uu = geodesy.gen_uuid.makeUniqueID('http://ros.org/wiki/road_network/'
                                        + str(start) + '/' + str(end))
     return RouteSegment(id = uu, start = start, end = end)
 
-class RoadNetNode():
+class RouteNetNode():
 
     def __init__(self):
-        """ROS node to publish the road network graph for a GeographicMap.
+        """ROS node to publish the route network graph for a GeographicMap.
         """
-        rospy.init_node('road_network')
+        rospy.init_node('route_network')
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('route_network',
@@ -103,9 +112,9 @@ class RoadNetNode():
         self.msg = RouteNetwork(header = msg.header,
                                 bounds = msg.bounds)
 
-        # process each feature tagged as a road
-        for feature in itertools.ifilter(is_road, self.map_features):
-            oneway = is_oneway(feature)         # :todo: add to geo_map module?
+        # process each feature tagged as a route
+        for feature in itertools.ifilter(is_route, self.map_features):
+            oneway = is_oneway(feature)
             start = None
             for mbr in feature.components:
                 pt = self.map_points.get(mbr.uuid).toWayPoint()
@@ -147,7 +156,7 @@ class RoadNetNode():
         return self.config
     
 def main():
-    node_class = RoadNetNode()
+    node_class = RouteNetNode()
     try:
         rospy.spin()
     except rospy.ROSInterruptException: pass
