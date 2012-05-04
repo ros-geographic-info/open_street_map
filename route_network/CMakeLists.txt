@@ -22,7 +22,7 @@ include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
 gencfg()
 
 # unit tests
-rosbuild_add_pyunit(tests/test_geo_graph.py)
+#rosbuild_add_pyunit(tests/test_geo_graph.py)
 
 # check all the launch files
 rosbuild_add_roslaunch_check(launch)
