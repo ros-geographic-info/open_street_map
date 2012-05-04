@@ -7,12 +7,12 @@
   <author>Jack O'Quin</author>
   <license>BSD</license>
   <review status="experimental" notes=""/>
-  <url>http://ros.org/wiki/osm_cartography</url>
+  <url>http://ros.org/wiki/route_network</url>
   <depend package="dynamic_reconfigure" />
   <depend package="geodesy"/>
   <depend package="geographic_msgs"/>
   <depend package="geometry_msgs"/>
-  <depend package="osm_cartography"/>
+  <depend package="osm_cartography"/> <!-- :todo: remove this dependency -->
   <depend package="rospy"/>
   <depend package="visualization_msgs"/>
   <export>
