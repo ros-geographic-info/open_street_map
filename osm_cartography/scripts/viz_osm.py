@@ -206,11 +206,6 @@ class VizNode():
         :returns: New config if valid, old one otherwise. That updates
                   the dynamic reconfigure GUI window.
         """
-        # treat an empty URL as a valid "do nothing" command
-        if config.map_url == '':
-            self.config = config        # save new config
-            return config
-
         rospy.loginfo('Map URL: ' + str(config.map_url))
 
         try:

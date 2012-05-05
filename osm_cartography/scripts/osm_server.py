@@ -50,33 +50,48 @@ from geographic_msgs.srv import GetGeographicMapResponse
 
 from osm_cartography import xml_map
 
-def map_server(req):
+class ServerNode:
+    
+    def __init__(self):
+        rospy.init_node('osm_server')
+        self.srv = rospy.Service('get_geographic_map', GetGeographicMap,
+                                 self.map_server)
+        self.resp = None
 
-    url = str(req.url)
-    rospy.loginfo('[get_geographic_map] ' + url)
-    resp = GetGeographicMapResponse()
+    def map_server(self, req):
+        """ GetGeographicMap service callback.
 
-    try:
-        parser = xml_map.ParseOSM()
-        resp.map = parser.get_map(url, req.bounds)
-    except (IOError, ValueError) as error_msg:
-        rospy.logerr(error_msg)
-        resp.success = False
-        resp.status = error_msg
-    else:
-        resp.success = True
-        resp.status = url
-        resp.map.header.stamp = rospy.Time.now()
-        resp.map.header.frame_id = '/map'
+        :param req: Request.
+        :returns: Response.
+        """
+        url = str(req.url)
+        self.url = url
+        rospy.loginfo('[get_geographic_map] ' + url)
 
-    return resp
+        # if empty URL, return existing map
+        if url == '' and self.resp is not None: 
+            return self.resp
 
-def server_node():
-    srv = rospy.Service('get_geographic_map', GetGeographicMap, map_server)
-    rospy.init_node('osm_server')
-    rospy.spin()
+        self.resp = GetGeographicMapResponse()
+        try:
+            parser = xml_map.ParseOSM()
+            self.resp.map = parser.get_map(url, req.bounds)
+        except (IOError, ValueError) as error_msg:
+            rospy.logerr(error_msg)
+            self.resp.success = False
+            self.resp.status = error_msg
+        else:
+            self.resp.success = True
+            self.resp.status = url
+            self.resp.map.header.stamp = rospy.Time.now()
+            self.resp.map.header.frame_id = '/map'
+        return self.resp
+
+    def run(self):
+        rospy.spin()
 
 if __name__ == '__main__':
+    server = ServerNode()
     try:
-        server_node()
+        server.run()
     except rospy.ROSInterruptException: pass
