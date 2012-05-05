@@ -14,10 +14,10 @@ Contents:
 Python API
 ^^^^^^^^^^
 
-.. automodule:: osm_cartography.way_point
+.. :py:mod:`osm_cartography.geo_map`
    :members:
 
-.. automodule:: osm_cartography.xml_map
+.. :py:mod:`osm_cartography.xml_map`
    :members:
 
 Indices and tables

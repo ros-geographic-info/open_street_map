@@ -48,7 +48,6 @@ import sys
 import itertools
 import geodesy.utm
 
-#import osm_cartography.way_point as way_point
 from osm_cartography.geo_map import *
 
 from geographic_msgs.msg import BoundingBox

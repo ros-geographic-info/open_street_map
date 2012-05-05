@@ -1,3 +1,2 @@
 - builder: sphinx
-   name: Programming API
-   sphinx_root_dir: doc
+   name: Python API

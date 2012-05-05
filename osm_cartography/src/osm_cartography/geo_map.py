@@ -48,7 +48,7 @@ import rospy
 import itertools
 
 import geodesy.utm
-import osm_cartography.way_point
+import geodesy.wu_point
 
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import WayPoint
@@ -108,7 +108,7 @@ class GeoMap():
         if not utm_pt:
             utm_pt = geodesy.utm.fromMsg(way_pt.position)
             self.utm_points[index] = utm_pt
-        return osm_cartography.way_point.WuPoint(way_pt, utm=utm_pt)
+        return geodesy.wu_point.WuPoint(way_pt, utm=utm_pt)
 
 class GeoMapFeatures():
     """
