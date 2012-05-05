@@ -62,7 +62,7 @@ class RouteVizNode():
         """ROS node to publish the route network graph for a GeographicMap.
         """
         rospy.init_node('viz_routes')
-        self.msg = None
+        self.graph = None
         self.marks = None
 
         # advertise visualization marker topic
@@ -73,21 +73,42 @@ class RouteVizNode():
         self.sub = rospy.Subscriber('route_network', RouteNetwork,
                                     self.graph_callback)
 
-    def graph_callback(self, msg):
+    def graph_callback(self, graph):
         """Publish visualization markers for a RouteNetwork graph.
 
-        :param msg: RouteNetwork message
+        :param graph: RouteNetwork message
 
         :post: self.marks = visualization markers message.
-        :post: self.msg = RouteNetwork message.
+        :post: self.graph = RouteNetwork message.
         """
-        self.msg = msg
+        self.graph = graph
         self.marks = MarkerArray()
-        self.points = geodesy.wu_point.WuPointSet(msg.points)
+        self.points = geodesy.wu_point.WuPointSet(graph.points)
 
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
+        self.mark_segments(ColorRGBA(r=1., g=0., b=1., a=0.8))
 
         self.pub.publish(self.marks)
+
+    def mark_segments(self, color):
+        """Create lines for segments.
+
+        :param color: RGBA value
+        """
+        index = 0
+        for segment in self.graph.segments:
+            marker = Marker(header = self.graph.header,
+                            ns = 'route_segments',
+                            id = index,
+                            type = Marker.LINE_STRIP,
+                            action = Marker.ADD,
+                            scale = Vector3(x=2.),
+                            color = color,
+                            lifetime = rospy.Duration())
+            index += 1
+            marker.points.append(self.points[segment.start.uuid].toPointXY())
+            marker.points.append(self.points[segment.end.uuid].toPointXY())
+            self.marks.markers.append(marker)
 
     def mark_way_points(self, color):
         """Create slightly transparent disks for way-points.
@@ -98,7 +119,7 @@ class RouteVizNode():
         null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
         index = 0
         for wp in self.points:
-            marker = Marker(header = self.msg.header,
+            marker = Marker(header = self.graph.header,
                             ns = "route_waypoints",
                             id = index,
                             type = Marker.CYLINDER,
