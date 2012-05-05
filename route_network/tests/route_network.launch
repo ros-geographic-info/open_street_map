@@ -1,6 +1,9 @@
-<!-- Launch file for visualizing OSM data
+<!-- Launch file for visualizing OSM route networks
 
      arg: map_url = URL for map data
+
+     Note: this is a test script using osm_cartography, which
+           should not be an official route_network dependency.
 
      $Id$
   -->
@@ -9,14 +12,14 @@
 
   <arg name="map_url" default="package://osm_cartography/tests/prc.osm" />
 
-  <!-- start map server -->
-  <node pkg="osm_cartography" type="osm_server.py" name="osm_server" />
+  <!-- start map server (only) <node pkg="osm_cartography"
+       type="osm_server.py" name="osm_server" />
+  -->
 
-  <!-- start map server and visualization
+  <!-- start map server and visualization -->
   <include file="$(find osm_cartography)/launch/viz_osm.launch" >
     <arg name="map_url" value="$(arg map_url)" />
   </include>
-  -->
 
   <!-- start network graph node -->
   <node pkg="route_network" type="route_network.py" name="route_network" >
