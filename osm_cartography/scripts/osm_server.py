@@ -74,8 +74,7 @@ class ServerNode:
 
         self.resp = GetGeographicMapResponse()
         try:
-            parser = xml_map.ParseOSM()
-            self.resp.map = parser.get_map(url, req.bounds)
+            self.resp.map = xml_map.get_osm(url, req.bounds)
         except (IOError, ValueError) as error_msg:
             rospy.logerr(error_msg)
             self.resp.success = False

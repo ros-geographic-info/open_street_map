@@ -80,181 +80,156 @@ def makeUniqueID(namespace, id):
     ns = 'http://openstreetmap.org/' + namespace + '/'
     return geodesy.gen_uuid.makeUniqueID(ns, id)
 
-class ParseOSM:
 
-    def __init__(self, interesting=None, ignored=None):
-        self.set_tags(interesting, ignored)
-
-    def get_interesting_tag(self, el):
-        """Returns a KeyValue pair, if key is in interesting_tags.
+def get_tag(el):
+    """ Get a KeyValue pair from a <tag> element.
     
-        Returns None if no match.
-        """
-        #print(el.attrib)
-        pair = None
-        key = el.get('k')
-        if key != None and key in self.interesting_tags:
-            pair = KeyValue()
-            pair.key = key
-            pair.value = get_required_attribute(el, 'v')
-        return pair
-
-    def get_tag(self, el):
-        """ Get a KeyValue pair from a <tag> element.
-    
-        :returns: KeyValue pair if any, None otherwise.
-        """
-        pair = None
-        key = el.get('k')
-        if key != None:
-            pair = KeyValue()
-            pair.key = key
-            pair.value = get_required_attribute(el, 'v')
+    :returns: KeyValue pair if any, None otherwise.
+    """
+    pair = None
+    key = el.get('k')
+    if key != None:
+        pair = KeyValue()
+        pair.key = key
+        pair.value = get_required_attribute(el, 'v')
         return pair
     
-    def get_map(self, url, bounds):
-        """Get GeographicMap from XML data.
+def get_osm(url, bounds):
+    """Get GeographicMap from Open Street Map XML data.
 
-        :param url:    Uniform Resource Locator for map.
-        :param bounds: Desired bounding box for map (presently ignored).
-        :returns: GeographicMap message with header not filled in.
-        """
+    The latitude and longitude bounding box returned may differ from
+    the requested bounds.
 
-        # parse the URL
-        filename = ''
-        if url.startswith('file:///'):
-            filename = url[7:]
-        elif url.startswith('package://'):
-            pkg_name, slash, pkg_path = url[10:].partition('/')
-            pkg_dir = roslib.packages.get_pkg_dir(pkg_name)
-            filename = pkg_dir + '/' + pkg_path
-        else:
-            raise ValueError('unsupported URL: ' + url)
+    :param url:    Uniform Resource Locator for map.
+    :param bounds: Desired bounding box for map (presently ignored).
+    :returns: GeographicMap message with header not filled in.
+    """
+    # parse the URL
+    filename = ''
+    if url.startswith('file:///'):
+        filename = url[7:]
+    elif url.startswith('package://'):
+        pkg_name, slash, pkg_path = url[10:].partition('/')
+        pkg_dir = roslib.packages.get_pkg_dir(pkg_name)
+        filename = pkg_dir + '/' + pkg_path
+    else:
+        raise ValueError('unsupported URL: ' + url)
 
-        map = GeographicMap()
-        xm = None
-        try:
-            f = open(filename, 'r')
-            xm = ElementTree.parse(f)
-        except IOError:
-            raise ValueError('unable to read ' + str(url))
-        except ElementTree.ParseError:
-            raise ValueError('XML parse failed for ' + str(url))
-        osm = xm.getroot()
-    
-        # get map bounds
-        for el in osm.iterfind('bounds'):
-            map.bounds.min_latitude =  float(get_required_attribute(el, 'minlat'))
-            map.bounds.min_longitude = float(get_required_attribute(el, 'minlon'))
-            map.bounds.max_latitude =  float(get_required_attribute(el, 'maxlat'))
-            map.bounds.max_longitude = float(get_required_attribute(el, 'maxlon'))
-    
-        # get map way-point nodes
-        for el in osm.iterfind('node'):
-    
-            way = WayPoint()
-            id = el.get('id')
-            if id == None:
-                raise ValueError('node id missing')
-            way.id = makeUniqueID('node', id)
-    
-            way.position.latitude = float(get_required_attribute(el, 'lat'))
-            way.position.longitude = float(get_required_attribute(el, 'lon'))
-            way.position.altitude = float(el.get('ele', float('nan')))
-    
-            for tag_list in el.iterfind('tag'):
-                kv = self.get_tag(tag_list)
-                if kv != None:
-                    way.tags.append(kv)
-    
-            map.points.append(way)
-    
-        # get map paths
-        for el in osm.iterfind('way'):
-    
-            feature = MapFeature()
-            id = el.get('id')
-            if id == None:
-                raise ValueError('way id missing')
-            feature.id = makeUniqueID('way', id)
-    
-            for nd in el.iterfind('nd'):
-                way_id = get_required_attribute(nd, 'ref')
-                feature.components.append(makeUniqueID('node', way_id))
-    
-            for tag_list in el.iterfind('tag'):
-                kv = self.get_tag(tag_list)
-                if kv != None:
-                    feature.tags.append(kv)
-    
-            map.features.append(feature)
-    
-        # get relations
-        for el in osm.iterfind('relation'):
-    
-            feature = MapFeature()
-            id = el.get('id')
-            if id == None:
-                raise ValueError('relation id missing')
-            feature.id = makeUniqueID('relation', id)
-    
-            for mbr in el.iterfind('member'):
-                mbr_type = get_required_attribute(mbr, 'type')
-                if mbr_type in {'node', 'way', 'relation'}:
-                    mbr_id = get_required_attribute(mbr, 'ref')
-                    feature.components.append(makeUniqueID(mbr_type, mbr_id))
-                else:
-                    print('unknown relation member type: ' + mbr_type)
-    
-            for tag_list in el.iterfind('tag'):
-                kv = self.get_tag(tag_list)
-                if kv != None:
-                    feature.tags.append(kv)
-    
-            map.features.append(feature)
-    
-        return map
+    map = GeographicMap()
+    xm = None
+    try:
+        f = open(filename, 'r')
+        xm = ElementTree.parse(f)
+    except IOError:
+        raise ValueError('unable to read ' + str(url))
+    except ElementTree.ParseError:
+        raise ValueError('XML parse failed for ' + str(url))
+    osm = xm.getroot()
 
-    def set_tags(self, interesting=None, ignored=None):
-        """Set interesting tags and ignored values, with reasonable
-        defaults, if None provided.
-        """
-        if interesting is None:
-            self.interesting_tags = {'access',
-                                     'amenity',
-                                     'boundary',
-                                     'bridge',
-                                     'building',
-                                     'ele',
-                                     'highway',
-                                     'landuse',
-                                     'lanes',
-                                     'layer',
-                                     'maxheight',
-                                     'maxspeed',
-                                     'maxwidth',
-                                     'name',
-                                     'network',
-                                     'oneway',
-                                     'railway',
-                                     'ref',
-                                     'restriction',
-                                     'route',
-                                     'street',
-                                     'tunnel',
-                                     'type',
-                                     'width'}
-        else:
-            self.interesting_tags = interesting
+    # get map bounds
+    for el in osm.iterfind('bounds'):
+        map.bounds.min_latitude =  float(get_required_attribute(el, 'minlat'))
+        map.bounds.min_longitude = float(get_required_attribute(el, 'minlon'))
+        map.bounds.max_latitude =  float(get_required_attribute(el, 'maxlat'))
+        map.bounds.max_longitude = float(get_required_attribute(el, 'maxlon'))
 
-        if ignored is None:
-            self.ignored_values = {'bridleway',
-                                   'construction',
-                                   'cycleway',
-                                   'footway',
-                                   'path',
-                                   'pedestrian',
-                                   'proposed',
-                                   'steps'}
-        else:
-            self.ignored_values = ignored
+    # get map way-point nodes
+    for el in osm.iterfind('node'):
+
+        way = WayPoint()
+        id = el.get('id')
+        if id == None:
+            raise ValueError('node id missing')
+        way.id = makeUniqueID('node', id)
+
+        way.position.latitude = float(get_required_attribute(el, 'lat'))
+        way.position.longitude = float(get_required_attribute(el, 'lon'))
+        way.position.altitude = float(el.get('ele', float('nan')))
+
+        for tag_list in el.iterfind('tag'):
+            kv = get_tag(tag_list)
+            if kv != None:
+                way.tags.append(kv)
+
+        map.points.append(way)
+
+    # get map paths
+    for el in osm.iterfind('way'):
+
+        feature = MapFeature()
+        id = el.get('id')
+        if id == None:
+            raise ValueError('way id missing')
+        feature.id = makeUniqueID('way', id)
+
+        for nd in el.iterfind('nd'):
+            way_id = get_required_attribute(nd, 'ref')
+            feature.components.append(makeUniqueID('node', way_id))
+
+        for tag_list in el.iterfind('tag'):
+            kv = get_tag(tag_list)
+            if kv != None:
+                feature.tags.append(kv)
+
+        map.features.append(feature)
+
+    # get relations
+    for el in osm.iterfind('relation'):
+
+        feature = MapFeature()
+        id = el.get('id')
+        if id == None:
+            raise ValueError('relation id missing')
+        feature.id = makeUniqueID('relation', id)
+
+        for mbr in el.iterfind('member'):
+            mbr_type = get_required_attribute(mbr, 'type')
+            if mbr_type in {'node', 'way', 'relation'}:
+                mbr_id = get_required_attribute(mbr, 'ref')
+                feature.components.append(makeUniqueID(mbr_type, mbr_id))
+            else:
+                print('unknown relation member type: ' + mbr_type)
+
+        for tag_list in el.iterfind('tag'):
+            kv = get_tag(tag_list)
+            if kv != None:
+                feature.tags.append(kv)
+
+        map.features.append(feature)
+
+    return map
+
+interesting_tags = {'access',
+                    'amenity',
+                    'boundary',
+                    'bridge',
+                    'building',
+                    'ele',
+                    'highway',
+                    'landuse',
+                    'lanes',
+                    'layer',
+                    'maxheight',
+                    'maxspeed',
+                    'maxwidth',
+                    'name',
+                    'network',
+                    'oneway',
+                    'railway',
+                    'ref',
+                    'restriction',
+                    'route',
+                    'street',
+                    'tunnel',
+                    'type',
+                    'width'}
+
+
+ignored_values = {'bridleway',
+                  'construction',
+                  'cycleway',
+                  'footway',
+                  'path',
+                  'pedestrian',
+                  'proposed',
+                  'steps'}

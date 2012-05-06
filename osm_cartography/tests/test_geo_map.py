@@ -10,7 +10,7 @@ from geographic_msgs.msg import GeographicMap
 #from geometry_msgs.msg import Point
 
 from osm_cartography.geo_map import *
-import osm_cartography.xml_map
+from osm_cartography import xml_map
 
 #def fromLatLong(lat, lon, alt=float('nan')):
 #    """Generate WayPoint from latitude, longitude and (optional) altitude.
@@ -57,9 +57,8 @@ class TestGeoMap(unittest.TestCase):
             x = gf[uu]
 
     def test_tiny_map(self):
-        parser = osm_cartography.xml_map.ParseOSM()
-        gm = GeoMap(parser.get_map('package://osm_cartography/tests/tiny.osm',
-                                   BoundingBox()))
+        gm = GeoMap(xml_map.get_osm('package://osm_cartography/tests/tiny.osm',
+                                    BoundingBox()))
         self.assertEqual(gm.n_points, 3)
 
         # expected way point IDs and UTM coordinates
@@ -82,9 +81,8 @@ class TestGeoMap(unittest.TestCase):
         self.assertEqual(len(gpts), 3)
 
     def test_tiny_map_features(self):
-        parser = osm_cartography.xml_map.ParseOSM()
-        gm = GeoMap(parser.get_map('package://osm_cartography/tests/tiny.osm',
-                                   BoundingBox()))
+        gm = GeoMap(xml_map.get_osm('package://osm_cartography/tests/tiny.osm',
+                                    BoundingBox()))
         self.assertEqual(gm.n_features, 2)
 
         # expected feature IDs
@@ -101,9 +99,8 @@ class TestGeoMap(unittest.TestCase):
         self.assertEqual(len(gf), 2)
 
     def test_prc_map(self):
-        parser = osm_cartography.xml_map.ParseOSM()
-        gm = GeoMap(parser.get_map('package://osm_cartography/tests/prc.osm',
-                                   BoundingBox()))
+        gm = GeoMap(xml_map.get_osm('package://osm_cartography/tests/prc.osm',
+                                    BoundingBox()))
         self.assertEqual(gm.n_features, 84)
 
         gpts = GeoMapPoints(gm)
