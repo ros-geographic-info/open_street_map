@@ -56,7 +56,7 @@ from geometry_msgs.msg import Point
 
 class GeoMap():
     """
-    :class:`GeoMap` represents a map WayPoint with UTM coordinates.
+    :class:`GeoMap` provides an internal GeographicMap representation.
     """
 
     def __init__(self, gmap):
@@ -68,17 +68,6 @@ class GeoMap():
         :param gmap: geographic_msgs/GeographicMap message
         """
         self.gmap = gmap
-
-        # Initialize way point information.
-        self.way_point_ids = {}         # points symbol table
-        self.n_points = len(self.gmap.points)
-        for wid in xrange(self.n_points):
-            wp = self.gmap.points
-            self.way_point_ids[wp[wid].id.uuid] = wid
-
-        # Create empty list of UTM points, corresponding to map points.
-        # They will be evaluated lazily, when first needed.
-        self.utm_points = [None for wid in xrange(self.n_points)]
 
         # Initialize feature information.
         self.feature_ids = {}           # feature symbol table
@@ -96,19 +85,6 @@ class GeoMap():
         """ Get GeographicMap message Header
         """
         return self.gmap.header
-
-    def _get_point_with_utm(self, index):
-        """ Get way point with UTM coordinates.
-
-        :param index: Index of point in self.
-        :returns: Corresponding WuPoint object.
-        """
-        way_pt = self.gmap.points[index]
-        utm_pt = self.utm_points[index]
-        if not utm_pt:
-            utm_pt = geodesy.utm.fromMsg(way_pt.position)
-            self.utm_points[index] = utm_pt
-        return geodesy.wu_point.WuPoint(way_pt, utm=utm_pt)
 
 class GeoMapFeatures():
     """
@@ -159,70 +135,6 @@ class GeoMapFeatures():
             raise StopIteration
         self.iter_index = i + 1
         return self.gmap.gmap.features[i]
-
-class GeoMapPoints():
-    """
-    :class:`GeoMapPoints` provides an iterator for the way points in a
-    GeoMap.
-    """
-
-    def __init__(self, gmap):
-        """Constructor.
-
-        Collects relevant way point information from the geographic
-        map message, and provides convenient access to the data.
-
-        :param gmap: geographic_msgs/GeographicMap message
-        """
-        self.gmap = gmap
-
-    def __contains__(self, item):
-        """ Points set membership. """
-        return item in self.gmap.way_point_ids
-
-    def __getitem__(self, key):
-        """ Points accessor.
-
-        :param key: UUID of desired point.
-        :returns: Named WuPoint.
-        :raises: :exc:`KeyError` if no such point
-        """
-        index = self.gmap.way_point_ids[key]
-        return self.gmap._get_point_with_utm(index)
-
-    def __iter__(self):
-        """ Points iterator. """
-        self.iter_index = 0
-        return self
-
-    def __len__(self):
-        """Points vector length."""
-        return len(self.gmap.gmap.points)
-
-    def get(self, key, default=None):
-        """ Get point, if defined.
-
-        :param key: UUID of desired point.
-        :param default: value to return if no such point.
-        :returns: Named WuPoint, if successful; otherwise default.
-        """
-        index = self.gmap.way_point_ids.get(key)
-        if index != None:
-            return self.gmap._get_point_with_utm(index)
-        else:
-            return default
-
-    def next(self):
-        """ Next point.
-
-        :returns: Next WuPoint.
-        :raises: :exc:`StopIteration` when finished.
-        """
-        i = self.iter_index
-        if i >= self.gmap.n_points:
-            raise StopIteration
-        self.iter_index = i + 1
-        return self.gmap._get_point_with_utm(i)
 
 # useful set for calling match_tags()
 road_tags = {'bridge', 'highway', 'tunnel'}

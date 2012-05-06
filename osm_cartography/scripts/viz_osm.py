@@ -47,6 +47,7 @@ import rospy
 import sys
 import itertools
 import geodesy.utm
+import geodesy.wu_point
 
 from osm_cartography.geo_map import *
 
@@ -89,7 +90,7 @@ class VizNode():
         """
         self.geo_map = GeoMap(msg)
         self.map_features = GeoMapFeatures(self.geo_map)
-        self.map_points = GeoMapPoints(self.geo_map)
+        self.map_points = geodesy.wu_point.WuPointSet(msg.points)
         self.msg = MarkerArray()
         self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.8))
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))

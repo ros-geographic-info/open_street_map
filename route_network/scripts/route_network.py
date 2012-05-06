@@ -47,6 +47,7 @@ import sys
 import itertools
 import geodesy.utm
 import geodesy.gen_uuid
+import geodesy.wu_point
 
 from osm_cartography import geo_map     # :todo: move to geodesy??
 
@@ -108,7 +109,7 @@ class RouteNetNode():
         """
         self.geo_map = geo_map.GeoMap(msg)
         self.map_features = geo_map.GeoMapFeatures(self.geo_map)
-        self.map_points = geo_map.GeoMapPoints(self.geo_map)
+        self.map_points = geodesy.wu_point.WuPointSet(msg.points)
         self.msg = RouteNetwork(header = msg.header,
                                 bounds = msg.bounds)
 
