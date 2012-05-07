@@ -12,7 +12,6 @@
   <depend package="geodesy"/>
   <depend package="geographic_msgs"/>
   <depend package="geometry_msgs"/>
-  <depend package="osm_cartography"/> <!-- :todo: remove this dependency -->
   <depend package="rospy"/>
   <depend package="visualization_msgs"/>
   <export>

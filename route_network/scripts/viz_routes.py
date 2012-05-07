@@ -37,14 +37,13 @@
 Create route network messages for geographic information maps.
 """
 
-from __future__ import print_function
-
 PKG_NAME = 'route_network'
 import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
 
 import sys
 import itertools
+import geodesy.props
 import geodesy.wu_point
 
 from geographic_msgs.msg import RouteNetwork
@@ -86,17 +85,22 @@ class RouteVizNode():
         self.points = geodesy.wu_point.WuPointSet(graph.points)
 
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
-        self.mark_segments(ColorRGBA(r=1., g=0., b=1., a=0.8))
+        self.mark_segments(ColorRGBA(r=1., g=1., b=0., a=0.8),
+                           ColorRGBA(r=1., g=0., b=1., a=0.8))
 
         self.pub.publish(self.marks)
 
-    def mark_segments(self, color):
+    def mark_segments(self, color1, color2):
         """Create lines for segments.
 
-        :param color: RGBA value
+        :param color1: RGBA value for one-way segment
+        :param color2: RGBA value for two-way segment
         """
         index = 0
         for segment in self.graph.segments:
+            color = color2
+            if geodesy.props.match(segment, {'oneway'}):
+                color = color1
             marker = Marker(header = self.graph.header,
                             ns = 'route_segments',
                             id = index,
@@ -115,8 +119,6 @@ class RouteVizNode():
 
         :param color: disk RGBA value
         """
-        cylinder_size = Vector3(x=2., y=2., z=0.2)
-        null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
         index = 0
         for wp in self.points:
             marker = Marker(header = self.graph.header,
@@ -124,13 +126,13 @@ class RouteVizNode():
                             id = index,
                             type = Marker.CYLINDER,
                             action = Marker.ADD,
-                            scale = cylinder_size,
+                            scale = Vector3(x=2., y=2., z=0.2),
                             color = color,
                             lifetime = rospy.Duration())
             index += 1
             # use easting and northing coordinates (ignoring altitude)
             marker.pose.position = wp.toPointXY()
-            marker.pose.orientation = null_quaternion
+            marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
             self.marks.markers.append(marker)
     
 def main():

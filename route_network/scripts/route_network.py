@@ -47,6 +47,7 @@ import sys
 import itertools
 import geodesy.utm
 import geodesy.gen_uuid
+import geodesy.props
 import geodesy.wu_point
 
 from geographic_msgs.msg import BoundingBox
@@ -60,31 +61,19 @@ from geographic_msgs.srv import GetGeographicMap
 from dynamic_reconfigure.server import Server as ReconfigureServer
 import route_network.cfg.RouteNetworkConfig as Config
 
-def match_props(msg, prop_set):
-    """ Match message properties.
-
-    :param msg:      Message to test.
-    :param prop_set: Set of properties to match.
-    :returns: True if matching property found; False if not.
-    """
-    for prop in msg.tags:
-        if prop.key in prop_set:
-            return True
-    return False
-
 def is_oneway(feature):
     """ One-way route predicate.
     :returns: True if feature is one way.
     """
-    return match_props(feature,
-                       {'oneway'})
+    return geodesy.props.match(feature,
+                               {'oneway'})
 
 def is_route(feature):
     """ Drivable feature predicate.
     :returns: True if feature is drivable.
     """
-    return match_props(feature,
-                       {'bridge', 'highway', 'tunnel'})
+    return geodesy.props.match(feature,
+                               {'bridge', 'highway', 'tunnel'})
 
 def makeSeg(start, end, oneway=False):
     """ Make RouteSegment message.
