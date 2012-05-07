@@ -49,9 +49,8 @@ import geodesy.utm
 import geodesy.gen_uuid
 import geodesy.wu_point
 
-from osm_cartography import geo_map     # :todo: remove dependency
-
 from geographic_msgs.msg import BoundingBox
+from geographic_msgs.msg import KeyValue
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RouteSegment
 from geographic_msgs.msg import UniqueID
@@ -61,28 +60,46 @@ from geographic_msgs.srv import GetGeographicMap
 from dynamic_reconfigure.server import Server as ReconfigureServer
 import route_network.cfg.RouteNetworkConfig as Config
 
-def is_oneway(feature):
+def match_props(msg, prop_set):
+    """ Match message properties.
 
-    """ One-way route predicate.
-    :returns: True if feature is one way.
-    :todo: check the tags
+    :param msg:      Message to test.
+    :param prop_set: Set of properties to match.
+    :returns: True if matching property found; False if not.
     """
+    for prop in msg.tags:
+        if prop.key in prop_set:
+            return True
     return False
 
-def is_route(feature):
-    ':returns: True if feature is drivable.'
-    return geo_map.match_tags(feature, geo_map.road_tags)
+def is_oneway(feature):
+    """ One-way route predicate.
+    :returns: True if feature is one way.
+    """
+    return match_props(feature,
+                       {'oneway'})
 
-def makeSeg(start, end):
+def is_route(feature):
+    """ Drivable feature predicate.
+    :returns: True if feature is drivable.
+    """
+    return match_props(feature,
+                       {'bridge', 'highway', 'tunnel'})
+
+def makeSeg(start, end, oneway=False):
     """ Make RouteSegment message.
 
-    :param start: Initial UUID.
-    :param end: Final UUID.
+    :param start:  Initial UUID.
+    :param end:    Final UUID.
+    :param oneway: True if segment is one-way.
     :returns: RouteSegment message.
     """
     uu = geodesy.gen_uuid.makeUniqueID('http://ros.org/wiki/route_network/'
                                        + str(start) + '/' + str(end))
-    return RouteSegment(id = uu, start = start, end = end)
+    seg = RouteSegment(id = uu, start = start, end = end)
+    if oneway:
+        seg.tags.append(KeyValue(key = 'oneway', value = 'yes'))
+    return seg
 
 class RouteNetNode():
 
@@ -112,7 +129,7 @@ class RouteNetNode():
         self.graph = RouteNetwork(header = msg.header,
                                   bounds = msg.bounds)
 
-        # process each feature tagged as a route
+        # process each feature marked as a route
         for feature in itertools.ifilter(is_route, self.map.features):
             oneway = is_oneway(feature)
             start = None
@@ -122,7 +139,7 @@ class RouteNetNode():
                     self.graph.points.append(pt)
                     end = UniqueID(uuid = mbr.uuid)
                     if start is not None:
-                        self.graph.segments.append(makeSeg(start, end))
+                        self.graph.segments.append(makeSeg(start, end, oneway))
                         if not oneway:
                             self.graph.segments.append(makeSeg(end, start))
                     start = end
