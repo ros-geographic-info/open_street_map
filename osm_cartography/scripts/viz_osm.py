@@ -49,7 +49,7 @@ import itertools
 import geodesy.utm
 import geodesy.wu_point
 
-from osm_cartography.geo_map import *
+from osm_cartography.geo_map import match_tags, road_tags
 
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.msg import GeoPoint
@@ -83,14 +83,13 @@ class VizNode():
         # register dynamic reconfigure callback, which runs immediately
         self.reconf_server = ReconfigureServer(Config, self.reconfigure)
 
-    def get_markers(self, msg):
+    def get_markers(self, gmap):
         """Get markers for a GeographicMap message.
 
         :post: self.msg = visualization markers message
         """
-        self.geo_map = GeoMap(msg)
-        self.map_features = GeoMapFeatures(self.geo_map)
-        self.map_points = geodesy.wu_point.WuPointSet(msg.points)
+        self.map = gmap
+        self.map_points = geodesy.wu_point.WuPointSet(gmap.points)
         self.msg = MarkerArray()
         self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.8))
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
@@ -109,7 +108,7 @@ class VizNode():
 
     def mark_boundaries(self, color):
         # draw outline of map boundaries
-        marker = Marker(header = self.geo_map.header(),
+        marker = Marker(header = self.map.header,
                         ns = "bounds_osm",
                         id = 0,
                         type = Marker.LINE_STRIP,
@@ -121,7 +120,7 @@ class VizNode():
         # Convert bounds latitudes and longitudes to UTM (no
         # altitude), convert UTM points to geometry_msgs/Point
         # :todo: invent a better map bounds interface
-        bounds = self.geo_map.bounds()
+        bounds = self.map.bounds
         p0 = geodesy.utm.fromLatLong(bounds.min_latitude,
                                      bounds.min_longitude).toPoint()
         p1 = geodesy.utm.fromLatLong(bounds.min_latitude,
@@ -154,8 +153,8 @@ class VizNode():
         """
         index = 0
         for feature in itertools.ifilter(predicate,
-                                         self.map_features):
-            marker = Marker(header = self.geo_map.header(),
+                                         self.map.features):
+            marker = Marker(header = self.map.header,
                             ns = namespace,
                             id = index,
                             type = Marker.LINE_STRIP,
@@ -184,7 +183,7 @@ class VizNode():
         null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
         index = 0
         for wp in self.map_points:
-            marker = Marker(header = self.geo_map.header(),
+            marker = Marker(header = self.map.header,
                             ns = "waypoints_osm",
                             id = index,
                             type = Marker.CYLINDER,

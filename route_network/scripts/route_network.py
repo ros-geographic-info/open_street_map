@@ -49,7 +49,7 @@ import geodesy.utm
 import geodesy.gen_uuid
 import geodesy.wu_point
 
-from osm_cartography import geo_map     # :todo: move to geodesy??
+from osm_cartography import geo_map     # :todo: remove dependency
 
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.msg import RouteNetwork
@@ -67,7 +67,7 @@ def is_oneway(feature):
     :returns: True if feature is one way.
     :todo: check the tags
     """
-    return False            #
+    return False
 
 def is_route(feature):
     ':returns: True if feature is drivable.'
@@ -94,7 +94,7 @@ class RouteNetNode():
         # advertise visualization marker topic
         self.pub = rospy.Publisher('route_network',
                                    RouteNetwork, latch=True)
-        self.msg = None
+        self.graph = None
         rospy.wait_for_service('get_geographic_map')
         self.get_map = rospy.ServiceProxy('get_geographic_map',
                                           GetGeographicMap)
@@ -105,27 +105,26 @@ class RouteNetNode():
     def build_graph(self, msg):
         """Build RouteNetwork graph for a GeographicMap message.
 
-        :post: self.msg = RouteNetwork message
+        :post: self.graph = RouteNetwork message
         """
-        self.geo_map = geo_map.GeoMap(msg)
-        self.map_features = geo_map.GeoMapFeatures(self.geo_map)
+        self.map = msg
         self.map_points = geodesy.wu_point.WuPointSet(msg.points)
-        self.msg = RouteNetwork(header = msg.header,
-                                bounds = msg.bounds)
+        self.graph = RouteNetwork(header = msg.header,
+                                  bounds = msg.bounds)
 
         # process each feature tagged as a route
-        for feature in itertools.ifilter(is_route, self.map_features):
+        for feature in itertools.ifilter(is_route, self.map.features):
             oneway = is_oneway(feature)
             start = None
             for mbr in feature.components:
                 pt = self.map_points.get(mbr.uuid).toWayPoint()
                 if pt is not None:      # known way point?
-                    self.msg.points.append(pt)
+                    self.graph.points.append(pt)
                     end = UniqueID(uuid = mbr.uuid)
                     if start is not None:
-                        self.msg.segments.append(makeSeg(start, end))
+                        self.graph.segments.append(makeSeg(start, end))
                         if not oneway:
-                            self.msg.segments.append(makeSeg(end, start))
+                            self.graph.segments.append(makeSeg(end, start))
                     start = end
     
     def reconfigure(self, config, level):
@@ -148,9 +147,8 @@ class RouteNetNode():
             if resp.success:
                 self.build_graph(resp.map)
                 self.config = config    # save new URL
-                #print(str(self.msg))
                 # publish visualization markers (on a latched topic)
-                self.pub.publish(self.msg)
+                self.pub.publish(self.graph)
             else:
                 print('get_geographic_map failed, status:', str(resp.status))
 
