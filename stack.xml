@@ -10,7 +10,7 @@
   <review status="experimental" notes=""/>
   <url>http://ros.org/wiki/open_street_map</url>
 
-  <depend stack="common_msgs" /> <!-- visualization_msgs -->
+  <depend stack="common_msgs" /> <!-- geometry_msgs, visualization_msgs -->
   <depend stack="geographic_info" /> <!-- geographic_msgs, geodesy -->
   <depend stack="ros" />
 

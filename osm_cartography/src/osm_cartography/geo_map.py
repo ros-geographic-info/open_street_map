@@ -135,18 +135,3 @@ class GeoMapFeatures():
             raise StopIteration
         self.iter_index = i + 1
         return self.gmap.gmap.features[i]
-
-# useful set for calling match_tags()
-road_tags = {'bridge', 'highway', 'tunnel'}
-
-def match_tags(f, tag_set):
-    """ Match tags from feature
-
-    :param f: Feature to test.
-    :param tag_set: Set of tags to match.
-    :returns: Values of tags matched.
-    """
-    for tag in f.tags:
-        if tag.key in tag_set:
-            return (tag.key, tag.value)
-    return False

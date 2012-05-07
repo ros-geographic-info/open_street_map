@@ -46,10 +46,9 @@ import rospy
 
 import sys
 import itertools
+import geodesy.props
 import geodesy.utm
 import geodesy.wu_point
-
-from osm_cartography.geo_map import match_tags, road_tags
 
 from geographic_msgs.msg import BoundingBox
 from geographic_msgs.msg import GeoPoint
@@ -93,18 +92,23 @@ class VizNode():
         self.msg = MarkerArray()
         self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.8))
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
-        self.mark_features(lambda(f): match_tags(f, road_tags),
-                           ColorRGBA(r=8., g=0.2, b=0.2, a=0.8),
-                           "roads_osm")
-        self.mark_features(lambda(f): match_tags(f, {'building'}),
-                           ColorRGBA(r=0., g=0.3, b=0.7, a=0.8),
-                           "buildings_osm")
-        self.mark_features(lambda(f): match_tags(f, {'railway'}),
-                           ColorRGBA(r=0., g=0.7, b=.7, a=0.8),
-                           "railroad_osm")
-        self.mark_features(lambda(f): match_tags(f, {'amenity', 'landuse'}),
-                           ColorRGBA(r=0., g=1., b=0., a=0.5),
-                           "other_osm")
+
+        # define arguments for displaying various feature types
+        road_tags = {'bridge', 'highway', 'tunnel'}
+        fargs = [(lambda(f): geodesy.props.match(f, road_tags),
+                  ColorRGBA(r=8., g=0.2, b=0.2, a=0.8),
+                  "roads_osm"),
+                 (lambda(f): geodesy.props.match(f, {'building'}),
+                  ColorRGBA(r=0., g=0.3, b=0.7, a=0.8),
+                  "buildings_osm"),
+                 (lambda(f): geodesy.props.match(f, {'railway'}),
+                  ColorRGBA(r=0., g=0.7, b=.7, a=0.8),
+                  "railroad_osm"),
+                 (lambda(f): geodesy.props.match(f, {'amenity', 'landuse'}),
+                  ColorRGBA(r=0., g=1., b=0., a=0.5),
+                  "other_osm")]
+        for args in fargs:
+            self.mark_features(*args)
 
     def mark_boundaries(self, color):
         # draw outline of map boundaries
@@ -119,7 +123,6 @@ class VizNode():
     
         # Convert bounds latitudes and longitudes to UTM (no
         # altitude), convert UTM points to geometry_msgs/Point
-        # :todo: invent a better map bounds interface
         bounds = self.map.bounds
         p0 = geodesy.utm.fromLatLong(bounds.min_latitude,
                                      bounds.min_longitude).toPoint()
@@ -179,8 +182,6 @@ class VizNode():
 
         :param color: disk RGBA value
         """
-        cylinder_size = Vector3(x=2., y=2., z=0.2)
-        null_quaternion = Quaternion(x=0., y=0., z=0., w=1.)
         index = 0
         for wp in self.map_points:
             marker = Marker(header = self.map.header,
@@ -188,13 +189,13 @@ class VizNode():
                             id = index,
                             type = Marker.CYLINDER,
                             action = Marker.ADD,
-                            scale = cylinder_size,
+                            scale = Vector3(x=2., y=2., z=0.2),
                             color = color,
                             lifetime = rospy.Duration())
             index += 1
             # use easting and northing coordinates (ignoring altitude)
             marker.pose.position = wp.toPointXY()
-            marker.pose.orientation = null_quaternion
+            marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
             self.msg.markers.append(marker)
     
     def reconfigure(self, config, level):
