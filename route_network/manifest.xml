@@ -12,6 +12,7 @@
   <depend package="geodesy"/>
   <depend package="geographic_msgs"/>
   <depend package="geometry_msgs"/>
+  <depend package="nav_msgs"/>
   <depend package="rospy"/>
   <depend package="visualization_msgs"/>
   <export>
