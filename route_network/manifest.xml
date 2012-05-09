@@ -8,6 +8,7 @@
   <license>BSD</license>
   <review status="experimental" notes=""/>
   <url>http://ros.org/wiki/route_network</url>
+
   <depend package="dynamic_reconfigure" />
   <depend package="geodesy"/>
   <depend package="geographic_msgs"/>
@@ -15,7 +16,9 @@
   <depend package="nav_msgs"/>
   <depend package="rospy"/>
   <depend package="visualization_msgs"/>
+
   <export>
     <rosdoc config="rosdoc.yaml" />
   </export>
+
 </package>

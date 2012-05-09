@@ -2,8 +2,8 @@
 
      arg: map_url = URL for map data
 
-     Note: this is a test script using osm_cartography, which
-           should not be an official route_network dependency.
+     Note: this test script uses osm_cartography, which is not an
+           official route_network dependency.
 
      $Id$
   -->

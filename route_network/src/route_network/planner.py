@@ -50,11 +50,30 @@ from geometry_msgs.msg import Quaternion
 from nav_msgs.msg import Path
 from nav_msgs.srv import GetPlan
 
+class Edge():
+    """
+    :class:`Edge` stores graph edge data for a way point.
+    """
+    def __init__(self, end, heuristic=0.0):
+        """Constructor.
+
+        Collects relevant information from a route segment, providing
+        convenient access to the data.
+
+        :param end: Index of ending way point.
+        :param heuristic: Distance heuristic from start to end (must
+                     *not* be an over-estimate).
+        """
+        self.end = end
+        self.h = heuristic
+
+    def __str__(self):
+        return str(self.end) + ' (' + str(self.h) + ')'
+
 class Planner():
     """
     :class:`Planner` plans a route through a RouteNetwork.
     """
-
     def __init__(self, graph):
         """Constructor.
 
@@ -66,12 +85,27 @@ class Planner():
         self.graph = graph
         self.points = geodesy.wu_point.WuPointSet(graph.points)
 
+        # Create empty list of graph edges leaving each map point.
+        self.edges = [[] for wid in xrange(len(self.points))]
+        for seg in self.graph.segments:
+            index = self.points.index(seg.start.uuid)
+            if index is not None:
+                n = self.points.index(seg.end.uuid)
+                if n is not None:
+                    # use 2D Euclidean distance for the heuristic
+                    dist = self.points.distance2D(index, n)
+                    self.edges[index].append(Edge(n, heuristic=dist))
+        ## Debug output:
+        #for i in xrange(len(self.edges)):
+        #    for k in self.edges[i]:
+        #        print i, '->', k
+
     def planner(self, req):
         """ Plan route for nav_msgs/GetPlan service request
 
         :param req: nav_msgs/GetPlanRequest message.
         :returns: nav_msgs/Path message.
 
-        :todo: this stub returns and empty plan
+        :todo: implement: this stub returns an empty plan
         """
         return Path()
