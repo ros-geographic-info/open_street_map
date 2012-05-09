@@ -208,10 +208,10 @@ class VizNode():
         :returns: New config if valid, old one otherwise. That updates
                   the dynamic reconfigure GUI window.
         """
-        rospy.loginfo('Map URL: ' + str(config.map_url))
+        rospy.loginfo('Map URL: ' + str(config['map_url']))
 
         try:
-            resp = self.get_map(config.map_url, BoundingBox())
+            resp = self.get_map(config['map_url'], BoundingBox())
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed:", str(e))
             # ignore new config, it failed

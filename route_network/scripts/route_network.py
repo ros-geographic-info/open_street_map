@@ -37,8 +37,6 @@
 Create route network messages for geographic information maps.
 """
 
-from __future__ import print_function
-
 PKG_NAME = 'route_network'
 import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
@@ -141,10 +139,10 @@ class RouteNetNode():
         :returns: New config if valid, old one otherwise. That updates
                   the dynamic reconfigure GUI window.
         """
-        rospy.loginfo('Map URL: ' + str(config.map_url))
+        rospy.loginfo('Map URL: ' + str(config['map_url']))
 
         try:
-            resp = self.get_map(config.map_url, BoundingBox())
+            resp = self.get_map(config['map_url'], BoundingBox())
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed:", str(e))
             # ignore new config, it failed
@@ -155,7 +153,7 @@ class RouteNetNode():
                 # publish visualization markers (on a latched topic)
                 self.pub.publish(self.graph)
             else:
-                print('get_geographic_map failed, status:', str(resp.status))
+                rospy.logerr('get_geographic_map failed, status:', str(resp.status))
 
         return self.config
     
