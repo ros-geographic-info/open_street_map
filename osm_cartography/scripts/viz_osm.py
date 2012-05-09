@@ -94,17 +94,18 @@ class VizNode():
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
 
         # define arguments for displaying various feature types
-        road_tags = {'bridge', 'highway', 'tunnel'}
+        road_tags = set(['bridge', 'highway', 'tunnel'])
         fargs = [(lambda(f): geodesy.props.match(f, road_tags),
                   ColorRGBA(r=8., g=0.2, b=0.2, a=0.8),
                   "roads_osm"),
-                 (lambda(f): geodesy.props.match(f, {'building'}),
+                 (lambda(f): geodesy.props.match(f, set(['building'])),
                   ColorRGBA(r=0., g=0.3, b=0.7, a=0.8),
                   "buildings_osm"),
-                 (lambda(f): geodesy.props.match(f, {'railway'}),
+                 (lambda(f): geodesy.props.match(f, set(['railway'])),
                   ColorRGBA(r=0., g=0.7, b=.7, a=0.8),
                   "railroad_osm"),
-                 (lambda(f): geodesy.props.match(f, {'amenity', 'landuse'}),
+                 (lambda(f): geodesy.props.match(f, set(['amenity',
+                                                         'landuse'])),
                   ColorRGBA(r=0., g=1., b=0., a=0.5),
                   "other_osm")]
         for args in fargs:

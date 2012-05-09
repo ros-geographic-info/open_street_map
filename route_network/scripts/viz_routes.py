@@ -99,7 +99,7 @@ class RouteVizNode():
         index = 0
         for segment in self.graph.segments:
             color = color2
-            if geodesy.props.match(segment, {'oneway'}):
+            if geodesy.props.match(segment, set(['oneway'])):
                 color = color1
             marker = Marker(header = self.graph.header,
                             ns = 'route_segments',

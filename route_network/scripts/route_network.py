@@ -65,15 +65,14 @@ def is_oneway(feature):
     """ One-way route predicate.
     :returns: True if feature is one way.
     """
-    return geodesy.props.match(feature,
-                               {'oneway'})
+    return geodesy.props.match(feature, set(['oneway']))
 
 def is_route(feature):
     """ Drivable feature predicate.
     :returns: True if feature is drivable.
     """
     return geodesy.props.match(feature,
-                               {'bridge', 'highway', 'tunnel'})
+                               set(['bridge', 'highway', 'tunnel']))
 
 def makeSeg(start, end, oneway=False):
     """ Make RouteSegment message.

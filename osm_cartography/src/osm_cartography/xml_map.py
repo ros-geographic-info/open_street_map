@@ -75,7 +75,7 @@ def makeUniqueID(namespace, id):
     :returns: corresponding UniqueID message.
     :raises:  :exc:`ValueError`
     """
-    if not namespace in {'node', 'way', 'relation'}:
+    if not namespace in set(['node', 'way', 'relation']):
         raise ValueError('invalid OSM namespace: ' + namespace)
     ns = 'http://openstreetmap.org/' + namespace + '/'
     return geodesy.gen_uuid.makeUniqueID(ns, id)
@@ -184,7 +184,7 @@ def get_osm(url, bounds):
 
         for mbr in el.iterfind('member'):
             mbr_type = get_required_attribute(mbr, 'type')
-            if mbr_type in {'node', 'way', 'relation'}:
+            if mbr_type in set(['node', 'way', 'relation']):
                 mbr_id = get_required_attribute(mbr, 'ref')
                 feature.components.append(makeUniqueID(mbr_type, mbr_id))
             else:
@@ -199,37 +199,37 @@ def get_osm(url, bounds):
 
     return map
 
-interesting_tags = {'access',
-                    'amenity',
-                    'boundary',
-                    'bridge',
-                    'building',
-                    'ele',
-                    'highway',
-                    'landuse',
-                    'lanes',
-                    'layer',
-                    'maxheight',
-                    'maxspeed',
-                    'maxwidth',
-                    'name',
-                    'network',
-                    'oneway',
-                    'railway',
-                    'ref',
-                    'restriction',
-                    'route',
-                    'street',
-                    'tunnel',
-                    'type',
-                    'width'}
+interesting_tags = set(['access',
+                        'amenity',
+                        'boundary',
+                        'bridge',
+                        'building',
+                        'ele',
+                        'highway',
+                        'landuse',
+                        'lanes',
+                        'layer',
+                        'maxheight',
+                        'maxspeed',
+                        'maxwidth',
+                        'name',
+                        'network',
+                        'oneway',
+                        'railway',
+                        'ref',
+                        'restriction',
+                        'route',
+                        'street',
+                        'tunnel',
+                        'type',
+                        'width'])
 
 
-ignored_values = {'bridleway',
-                  'construction',
-                  'cycleway',
-                  'footway',
-                  'path',
-                  'pedestrian',
-                  'proposed',
-                  'steps'}
+ignored_values = set(['bridleway',
+                      'construction',
+                      'cycleway',
+                      'footway',
+                      'path',
+                      'pedestrian',
+                      'proposed',
+                      'steps'])
