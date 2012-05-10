@@ -17,4 +17,7 @@
     <param name="map_url" value="$(arg map_url)" />
   </node>
 
+  <node pkg="tf" type="static_transform_publisher" name="local_map_tf"
+        args="622150 3362350 0 0 0 0 1 map local_map 100" />
+
 </launch>
