@@ -119,27 +119,51 @@ class TestPlanner(unittest.TestCase):
         self.assertEqual(pl.edges[i1], [])
         self.assertAlmostEqual(pl.points.distance2D(i0, i1), d)
 
-        # going backward should raise an exception
+        return                  # remainder not yet implemented
+
+        # going forward should yield a single route segment
+        req = GetRoutePlanRequest(network=pl.graph.id,
+                                  start='da7c242f-2efe-5175-9961-49cc621b80b9',
+                                  goal='812f1c08-a34b-5a21-92b9-18b2b0cf4950')
+        path = pl.planner(req)
+        self.assertEqual(len(path.segments), 1)
+        self.assertEqual(path.segments[0].uuid,
+                         '41b7d2be-3c37-5a78-a7ac-248d939af379')
+
+    def test_no_path_to_goal(self):
+        pl = Planner(tiny_oneway())
         req = GetRoutePlanRequest(network=pl.graph.id,
                                   start='812f1c08-a34b-5a21-92b9-18b2b0cf4950',
                                   goal='da7c242f-2efe-5175-9961-49cc621b80b9')
         self.assertRaises(NoPathToGoalError, pl.planner, req)
 
-        ## going forward should yield a single route segment
-        ## (not implemented yet)
-        #req = GetRoutePlanRequest(network=pl.graph.id,
-        #                          start='da7c242f-2efe-5175-9961-49cc621b80b9',
-        #                          goal='812f1c08-a34b-5a21-92b9-18b2b0cf4950')
-        #path = pl.planner(req)
-        #self.assertEqual(len(path.segments), 1)
-        #self.assertEqual(path.segments[0].uuid,
-        #                 '41b7d2be-3c37-5a78-a7ac-248d939af379')
+    def test_starting_at_goal(self):
+        pl = Planner(tiny_oneway())
+        req = GetRoutePlanRequest(network=pl.graph.id,
+                                  start='da7c242f-2efe-5175-9961-49cc621b80b9',
+                                  goal='da7c242f-2efe-5175-9961-49cc621b80b9')
+        path = pl.planner(req)
+        self.assertEqual(len(path.segments), 0)
 
     def test_bogus_network(self):
         pl = Planner(tiny_graph())
         req = GetRoutePlanRequest(network='deadbeef', # invalid network ID
                                   start='812f1c08-a34b-5a21-92b9-18b2b0cf4950',
                                   goal='da7c242f-2efe-5175-9961-49cc621b80b9')
+        self.assertRaises(ValueError, pl.planner, req)
+
+    def test_bogus_start_point(self):
+        pl = Planner(tiny_graph())
+        req = GetRoutePlanRequest(network=pl.graph.id,
+                                  start='deadbeef', # invalid way point
+                                  goal='da7c242f-2efe-5175-9961-49cc621b80b9')
+        self.assertRaises(ValueError, pl.planner, req)
+
+    def test_bogus_goal(self):
+        pl = Planner(tiny_graph())
+        req = GetRoutePlanRequest(network=pl.graph.id,
+                                  start='812f1c08-a34b-5a21-92b9-18b2b0cf4950',
+                                  goal='deadbeef') # invalid way point
         self.assertRaises(ValueError, pl.planner, req)
         
 

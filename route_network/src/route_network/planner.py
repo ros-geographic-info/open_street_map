@@ -111,21 +111,42 @@ class Planner():
 
         :param req: geographic_msgs/GetRoutePlanRequest message.
         :returns: geographic_msgs/RoutePath message.
-        :raises: :exc:`ValueError` if network ID does not match.
+        :raises: :exc:`ValueError` if invalid request.
         :raises: :exc:`NoPathToGoalError` if goal not reachable.
         """
-        if req.network != self.graph.id: # wrong route network?
+        if req.network != self.graph.id: # a different route network?
             raise ValueError('invalid GetRoutePlan network: ' + req.network)
+        start = self.points.index(req.start)
+        if start is None:
+            raise ValueError('unknown starting point: ' + req.start)
+        goal = self.points.index(req.goal)
+        if goal is None:
+            raise ValueError('unknown goal: ' + req.goal)
 
         resp =  RoutePath(network=self.graph.id)
         resp.header.frame_id = self.graph.header.frame_id
 
-        # :todo: implement A*, this stub only returns trivial plans
-        open = []
+        # A* shortest path algorithm
+        open = [[0.0, start]]
+        closed = [False for wid in xrange(len(self.points))]
+        backpath = [None for wid in xrange(len(self.points))]
+        e = start
         while True:
             if len(open) == 0:
                 raise NoPathToGoalError('No path from start to goal.')
-            if req.start == req.goal:
+            open.sort()         # :todo: make search more efficient
+            open.reverse()
+            h, e = open.pop()
+            if e == goal:
                 break
+            for edge in self.edges[e]:
+                e2 = edge.end
+                if not closed[e2]:
+                    h2 = h + edge.h
+                    open.append([h2, e2])
+                    closed[e2] = True
+                    backpath[e2] = e
+
+        # generate path from backpath
 
         return resp
