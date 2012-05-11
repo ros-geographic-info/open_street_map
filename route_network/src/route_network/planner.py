@@ -44,11 +44,17 @@ import rospy
 import geodesy.wu_point
 
 from geographic_msgs.msg import RouteNetwork
+from geographic_msgs.msg import RoutePath
 from geographic_msgs.msg import RouteSegment
+from geographic_msgs.srv import GetRoutePlan
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
-from nav_msgs.msg import Path
-from nav_msgs.srv import GetPlan
+
+class PlannerError(Exception):
+    """Base class for exceptions in this module."""
+
+class NoPathToGoalError(PlannerError):
+    """Exception raised when there is no path to the goal."""
 
 class Edge():
     """
@@ -101,11 +107,25 @@ class Planner():
         #        print i, '->', k
 
     def planner(self, req):
-        """ Plan route for nav_msgs/GetPlan service request
+        """ Plan route from start to goal.
 
-        :param req: nav_msgs/GetPlanRequest message.
-        :returns: nav_msgs/Path message.
-
-        :todo: implement: this stub returns an empty plan
+        :param req: geographic_msgs/GetRoutePlanRequest message.
+        :returns: geographic_msgs/RoutePath message.
+        :raises: :exc:`ValueError` if network ID does not match.
+        :raises: :exc:`NoPathToGoalError` if goal not reachable.
         """
-        return Path()
+        if req.network != self.graph.id: # wrong route network?
+            raise ValueError('invalid GetRoutePlan network: ' + req.network)
+
+        resp =  RoutePath(network=self.graph.id)
+        resp.header.frame_id = self.graph.header.frame_id
+
+        # :todo: implement A*, this stub only returns trivial plans
+        open = []
+        while True:
+            if len(open) == 0:
+                raise NoPathToGoalError('No path from start to goal.')
+            if req.start == req.goal:
+                break
+
+        return resp

@@ -35,6 +35,8 @@
 
 """
 Plan the shortest route through a geographic information network.
+
+:todo: add server for local GetPlan service.
 """
 
 PKG_NAME = 'route_network'
@@ -45,8 +47,8 @@ import sys
 from route_network import planner
 
 from geographic_msgs.msg import RouteNetwork
-from nav_msgs.msg import Path
-from nav_msgs.srv import GetPlan
+from geographic_msgs.msg import RoutePath
+from geographic_msgs.srv import GetRoutePlan
 
 class RoutePlannerNode():
 
@@ -58,7 +60,8 @@ class RoutePlannerNode():
         self.planner = None
 
         # advertise route planning service
-        self.srv = rospy.Service('get_plan', GetPlan, self.route_planner)
+        self.srv = rospy.Service('get_route_plan', GetRoutePlan,
+                                 self.route_planner)
         self.resp = None
 
         # subscribe to route network
@@ -76,15 +79,27 @@ class RoutePlannerNode():
 
     def route_planner(self, req):
         """
-        :param req: GetPlanRequest message
-        :returns: GetPlanResponse message
+        :param req: GetRoutePlanRequest message
+        :returns: GetRoutePlanResponse message
         """
-        path = Path()
-        path.header.stamp = rospy.Time.now()
-        if self.graph is not None:
-            path.header.frame_id = self.graph.header.frame_id
-            path = planner.path(req)
-        self.resp = GetPlanResponse(plan = path)
+        self.resp = GetRoutePlanResponse(plan = Path())
+        if self.graph is None:
+            self.resp.success = False
+            self.resp.status = 'no RouteNetwork available for GetRoutePlan'
+            rospy.logerr(self.resp.status)
+            return self.resp
+
+        try:
+            # plan a path to the goal
+            self.resp.plan = planner.path(req)
+        except (ValueError, NoPathToGoalError) as e:
+            self.resp.success = False
+            self.resp.status = e
+            rospy.logerr('route planner exception: ' + e)
+        else:
+            self.resp.success = True
+            self.resp.plan.header.stamp = rospy.Time.now()
+            self.resp.plan.header.frame_id = self.graph.header.frame_id
         return self.resp
 
 def main():
