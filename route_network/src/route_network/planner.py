@@ -60,17 +60,19 @@ class Edge():
     """
     :class:`Edge` stores graph edge data for a way point.
     """
-    def __init__(self, end, heuristic=0.0):
+    def __init__(self, end, seg, heuristic=0.0):
         """Constructor.
 
         Collects relevant information from a route segment, providing
         convenient access to the data.
 
         :param end: Index of ending way point.
+        :param seg: Corresponding RouteSegment.
         :param heuristic: Distance heuristic from start to end (must
                      *not* be an over-estimate).
         """
         self.end = end
+        self.seg = seg
         self.h = heuristic
 
     def __str__(self):
@@ -100,7 +102,8 @@ class Planner():
                 if n is not None:
                     # use 2D Euclidean distance for the heuristic
                     dist = self.points.distance2D(index, n)
-                    self.edges[index].append(Edge(n, heuristic=dist))
+                    self.edges[index].append(Edge(n, seg.id,
+                                                  heuristic=dist))
         ## Debug output:
         #for i in xrange(len(self.edges)):
         #    for k in self.edges[i]:
@@ -114,6 +117,7 @@ class Planner():
         :raises: :exc:`ValueError` if invalid request.
         :raises: :exc:`NoPathToGoalError` if goal not reachable.
         """
+        # validate request parameters
         if req.network != self.graph.id: # a different route network?
             raise ValueError('invalid GetRoutePlan network: ' + req.network)
         start = self.points.index(req.start)
@@ -123,8 +127,9 @@ class Planner():
         if goal is None:
             raise ValueError('unknown goal: ' + req.goal)
 
-        resp =  RoutePath(network=self.graph.id)
-        resp.header.frame_id = self.graph.header.frame_id
+        # initialize plan
+        plan = RoutePath(network=self.graph.id)
+        plan.network = req.network
 
         # A* shortest path algorithm
         open = [[0.0, start]]
@@ -145,8 +150,14 @@ class Planner():
                     h2 = h + edge.h
                     open.append([h2, e2])
                     closed[e2] = True
-                    backpath[e2] = e
+                    backpath[e2] = [e, edge]
 
-        # generate path from backpath
-
-        return resp
+        # generate plan segments from backpath
+        plan.segments = []
+        e = goal
+        while backpath[e] is not None:
+            plan.segments.append(backpath[e][1].seg)
+            e = backpath[e][0]
+        assert(e == start)
+        plan.segments.reverse()
+        return plan
