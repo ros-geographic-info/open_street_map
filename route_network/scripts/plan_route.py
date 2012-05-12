@@ -49,6 +49,7 @@ from route_network import planner
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RoutePath
 from geographic_msgs.srv import GetRoutePlan
+from geographic_msgs.srv import GetRoutePlanResponse
 
 class RoutePlannerNode():
 
@@ -82,7 +83,7 @@ class RoutePlannerNode():
         :param req: GetRoutePlanRequest message
         :returns: GetRoutePlanResponse message
         """
-        self.resp = GetRoutePlanResponse(plan = Path())
+        self.resp = GetRoutePlanResponse(plan = RoutePath())
         if self.graph is None:
             self.resp.success = False
             self.resp.status = 'no RouteNetwork available for GetRoutePlan'
@@ -91,8 +92,8 @@ class RoutePlannerNode():
 
         try:
             # plan a path to the goal
-            self.resp.plan = planner.path(req)
-        except (ValueError, NoPathToGoalError) as e:
+            self.resp.plan = self.planner.planner(req)
+        except (ValueError, planner.NoPathToGoalError) as e:
             self.resp.success = False
             self.resp.status = e
             rospy.logerr('route planner exception: ' + e)

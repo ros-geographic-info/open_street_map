@@ -42,8 +42,7 @@ import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
 
 import sys
-import itertools
-import geodesy.props
+import random
 import geodesy.wu_point
 
 from geographic_msgs.msg import RouteNetwork
@@ -59,11 +58,10 @@ from visualization_msgs.msg import MarkerArray
 class RouteVizNode():
 
     def __init__(self):
-        """ROS node to publish the route network graph for a GeographicMap.
+        """ROS node to visualize a route plan.
         """
         rospy.init_node('viz_routes')
         self.graph = None
-        self.marks = None
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker_array',
@@ -74,109 +72,59 @@ class RouteVizNode():
 
         # subscribe to route network
         self.sub = rospy.Subscriber('route_network', RouteNetwork,
-                                    self.plan_callback)
+                                    self.graph_callback)
 
-    def build_graph(self, msg):
-        """Build RouteNetwork graph for a GeographicMap message.
+    def graph_callback(self, graph):
+        """Handle RouteNetwork message.
+
+        :param graph: RouteNetwork message.
 
         :post: self.graph = RouteNetwork message
+        :post: self.points = visualization markers message.
         """
-        self.map = msg
-        self.map_points = geodesy.wu_point.WuPointSet(msg.points)
-        self.graph = RouteNetwork(header = msg.header,
-                                  bounds = msg.bounds)
+        self.graph = graph
+        self.points = geodesy.wu_point.WuPointSet(graph.points)
 
-        # process each feature marked as a route
-        for feature in itertools.ifilter(is_route, self.map.features):
-            oneway = is_oneway(feature)
-            start = None
-            for mbr in feature.components:
-                pt = self.map_points.get(mbr.uuid).toWayPoint()
-                if pt is not None:      # known way point?
-                    self.graph.points.append(pt)
-                    end = UniqueID(uuid = mbr.uuid)
-                    if start is not None:
-                        self.graph.segments.append(makeSeg(start, end, oneway))
-                        if not oneway:
-                            self.graph.segments.append(makeSeg(end, start))
-                    start = end
-
-    def plan_callback(self, path):
-        """Publish visualization markers for a RoutePath.
-
-        :param path: RoutePath message.
-
-        :post: self.marks = visualization markers message.
-        :post: self.path = RoutePath message.
-        """
-        self.path = path
-
+        # select start and goal way points at random
+        start, goal = random.sample(xrange(len(self.graph.points)), 2)
+        start_id = graph.points[start].id
+        goal_id = graph.points[goal].id
+        print start_id, goal_id
         try:
-            # get start and goal way points
-            resp = self.get_plan()
+            resp = self.get_plan(graph.id, start_id, goal_id)
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed:", str(e))
         else:                           # get_map returned
+            print resp
             if resp.success:
-                self.build_graph(resp.map)
-                # publish visualization markers (on a latched topic)
-                self.pub.publish(self.graph)
+                self.mark_plan(resp.plan)
             else:
                 rospy.logerr('get_route_plan failed, status:', str(resp.status))
 
-        self.marks = MarkerArray()
-        self.points = geodesy.wu_point.WuPointSet(graph.points)
+    def mark_plan(self, plan):
+        """Publish visualization markers for a RoutePath.
 
-        self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
-        self.mark_segments(ColorRGBA(r=1., g=1., b=0., a=0.8),
-                           ColorRGBA(r=1., g=0., b=1., a=0.8))
-
-        self.pub.publish(self.marks)
-
-    def mark_segments(self, color1, color2):
-        """Create lines for segments.
-
-        :param color1: RGBA value for one-way segment
-        :param color2: RGBA value for two-way segment
+        :param plan: RoutePath message
         """
+        self.plan = plan
+        return
+        marks = MarkerArray()
         index = 0
-        for segment in self.graph.segments:
-            color = color2
-            if geodesy.props.match(segment, set(['oneway'])):
-                color = color1
+        for segment in self.plan.segments:
             marker = Marker(header = self.graph.header,
-                            ns = 'route_segments',
+                            ns = 'plan_segments',
                             id = index,
                             type = Marker.LINE_STRIP,
                             action = Marker.ADD,
                             scale = Vector3(x=2.),
-                            color = color,
+                            color = ColorRGBA(r=1., g=0., b=0., a=0.8),
                             lifetime = rospy.Duration())
             index += 1
             marker.points.append(self.points[segment.start.uuid].toPointXY())
             marker.points.append(self.points[segment.end.uuid].toPointXY())
-            self.marks.markers.append(marker)
+            marks.markers.append(marker)
 
-    def mark_way_points(self, color):
-        """Create slightly transparent disks for way-points.
-
-        :param color: disk RGBA value
-        """
-        index = 0
-        for wp in self.points:
-            marker = Marker(header = self.graph.header,
-                            ns = "route_waypoints",
-                            id = index,
-                            type = Marker.CYLINDER,
-                            action = Marker.ADD,
-                            scale = Vector3(x=2., y=2., z=0.2),
-                            color = color,
-                            lifetime = rospy.Duration())
-            index += 1
-            # use easting and northing coordinates (ignoring altitude)
-            marker.pose.position = wp.toPointXY()
-            marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
-            self.marks.markers.append(marker)
+        self.pub.publish(marks)
     
 def main():
     node_class = RouteVizNode()
