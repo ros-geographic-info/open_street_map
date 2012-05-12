@@ -119,13 +119,13 @@ class Planner():
         """
         # validate request parameters
         if req.network != self.graph.id: # a different route network?
-            raise ValueError('invalid GetRoutePlan network: ' + req.network)
+            raise ValueError('invalid GetRoutePlan network: ' + str(req.network))
         start = self.points.index(req.start)
         if start is None:
-            raise ValueError('unknown starting point: ' + req.start)
+            raise ValueError('unknown starting point: ' + str(req.start))
         goal = self.points.index(req.goal)
         if goal is None:
-            raise ValueError('unknown goal: ' + req.goal)
+            raise ValueError('unknown goal: ' + str(req.goal))
 
         # initialize plan
         plan = RoutePath(network=self.graph.id)

@@ -74,6 +74,8 @@ class RouteVizNode():
         self.sub = rospy.Subscriber('route_network', RouteNetwork,
                                     self.graph_callback)
 
+        rospy.Timer(rospy.Duration(2), self.timer_callback)
+
     def graph_callback(self, graph):
         """Handle RouteNetwork message.
 
@@ -84,18 +86,29 @@ class RouteVizNode():
         """
         self.graph = graph
         self.points = geodesy.wu_point.WuPointSet(graph.points)
+        self.segment_ids = {}   # segments symbol table
+        for sid in xrange(len(graph.segments)):
+            self.segment_ids[graph.segments[sid].id.uuid] = sid
+
+    def timer_callback(self, event):
+        """ Called periodically. """
+        if self.graph is None:
+            print 'still waiting for graph'
+            return
+
+        print 'Timer called at ' + str(event.current_real)
 
         # select start and goal way points at random
         start, goal = random.sample(xrange(len(self.graph.points)), 2)
-        start_id = graph.points[start].id
-        goal_id = graph.points[goal].id
-        print start_id, goal_id
+        start_id = self.graph.points[start].id
+        goal_id = self.graph.points[goal].id
+        #print start_id, goal_id
         try:
-            resp = self.get_plan(graph.id, start_id, goal_id)
+            resp = self.get_plan(self.graph.id, start_id, goal_id)
         except rospy.ServiceException as e:
-            rospy.logerr("Service call failed:", str(e))
+            rospy.logerr("Service call failed:" + str(e))
         else:                           # get_map returned
-            print resp
+            #print resp
             if resp.success:
                 self.mark_plan(resp.plan)
             else:
@@ -106,20 +119,19 @@ class RouteVizNode():
 
         :param plan: RoutePath message
         """
-        self.plan = plan
-        return
         marks = MarkerArray()
         index = 0
-        for segment in self.plan.segments:
+        for seg_id in plan.segments:
             marker = Marker(header = self.graph.header,
                             ns = 'plan_segments',
                             id = index,
                             type = Marker.LINE_STRIP,
                             action = Marker.ADD,
-                            scale = Vector3(x=2.),
-                            color = ColorRGBA(r=1., g=0., b=0., a=0.8),
+                            scale = Vector3(x=4.0),
+                            color = ColorRGBA(r=1.0, a=0.8),
                             lifetime = rospy.Duration())
             index += 1
+            segment = self.graph.segments[self.segment_ids[seg_id]]
             marker.points.append(self.points[segment.start.uuid].toPointXY())
             marker.points.append(self.points[segment.end.uuid].toPointXY())
             marks.markers.append(marker)

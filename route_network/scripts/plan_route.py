@@ -95,8 +95,8 @@ class RoutePlannerNode():
             self.resp.plan = self.planner.planner(req)
         except (ValueError, planner.NoPathToGoalError) as e:
             self.resp.success = False
-            self.resp.status = e
-            rospy.logerr('route planner exception: ' + e)
+            self.resp.status = str(e)
+            rospy.logerr('route planner exception: ' + str(e))
         else:
             self.resp.success = True
             self.resp.plan.header.stamp = rospy.Time.now()
