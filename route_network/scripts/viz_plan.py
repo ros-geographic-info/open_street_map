@@ -34,7 +34,7 @@
 # Revision $Id$
 
 """
-Create route network messages for geographic information maps.
+Visualize route plan for geographic map.
 """
 
 PKG_NAME = 'route_network'
@@ -74,31 +74,55 @@ class RouteVizNode():
 
         # subscribe to route network
         self.sub = rospy.Subscriber('route_network', RouteNetwork,
-                                    self.graph_callback)
+                                    self.plan_callback)
 
-    def graph_callback(self, graph):
-        """Publish visualization markers for a RouteNetwork graph.
+    def build_graph(self, msg):
+        """Build RouteNetwork graph for a GeographicMap message.
 
-        :param graph: RouteNetwork message
+        :post: self.graph = RouteNetwork message
+        """
+        self.map = msg
+        self.map_points = geodesy.wu_point.WuPointSet(msg.points)
+        self.graph = RouteNetwork(header = msg.header,
+                                  bounds = msg.bounds)
+
+        # process each feature marked as a route
+        for feature in itertools.ifilter(is_route, self.map.features):
+            oneway = is_oneway(feature)
+            start = None
+            for mbr in feature.components:
+                pt = self.map_points.get(mbr.uuid).toWayPoint()
+                if pt is not None:      # known way point?
+                    self.graph.points.append(pt)
+                    end = UniqueID(uuid = mbr.uuid)
+                    if start is not None:
+                        self.graph.segments.append(makeSeg(start, end, oneway))
+                        if not oneway:
+                            self.graph.segments.append(makeSeg(end, start))
+                    start = end
+
+    def plan_callback(self, path):
+        """Publish visualization markers for a RoutePath.
+
+        :param path: RoutePath message.
 
         :post: self.marks = visualization markers message.
-        :post: self.graph = RouteNetwork message.
+        :post: self.path = RoutePath message.
         """
-        self.graph = graph
+        self.path = path
 
         try:
-            resp = self.get_plan(graph.id, graph.points[0])
+            # get start and goal way points
+            resp = self.get_plan()
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed:", str(e))
-            # ignore new config, it failed
         else:                           # get_map returned
             if resp.success:
                 self.build_graph(resp.map)
-                self.config = config    # save new URL
                 # publish visualization markers (on a latched topic)
                 self.pub.publish(self.graph)
             else:
-                rospy.logerr('get_geographic_map failed, status:', str(resp.status))
+                rospy.logerr('get_route_plan failed, status:', str(resp.status))
 
         self.marks = MarkerArray()
         self.points = geodesy.wu_point.WuPointSet(graph.points)
