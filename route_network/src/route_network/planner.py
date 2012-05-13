@@ -123,7 +123,8 @@ class Planner():
                              + str(req.network.uuid))
         start = self.points.index(req.start)
         if start is None:
-            raise ValueError('unknown starting point: ' + str(req.start.uuid))
+            raise ValueError('unknown starting point: '
+                             + str(req.start.uuid))
         goal = self.points.index(req.goal)
         if goal is None:
             raise ValueError('unknown goal: ' + str(req.goal.uuid))

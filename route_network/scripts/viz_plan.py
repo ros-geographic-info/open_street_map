@@ -111,8 +111,8 @@ class RouteVizNode():
 
         try:
             resp = self.get_plan(self.graph.id,
-                                 UniqueID(self.start),
-                                 UniqueID(self.goal))
+                                 UniqueID(uuid=self.start),
+                                 UniqueID(uuid=self.goal))
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed: " + str(e))
         else:                           # get_map returned
