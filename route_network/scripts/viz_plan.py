@@ -47,6 +47,7 @@ import geodesy.wu_point
 
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RouteSegment
+from geographic_msgs.msg import UniqueID
 from geographic_msgs.srv import GetRoutePlan
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
@@ -62,6 +63,8 @@ class RouteVizNode():
         """
         rospy.init_node('viz_routes')
         self.graph = None
+        self.start = rospy.get_param('~start', None)
+        self.goal = rospy.get_param('~goal', None)
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker_array',
@@ -95,16 +98,21 @@ class RouteVizNode():
         if self.graph is None:
             print 'still waiting for graph'
             return
-
         print 'Timer called at ' + str(event.current_real)
 
-        # select start and goal way points at random
-        start, goal = random.sample(xrange(len(self.graph.points)), 2)
-        start_id = self.graph.points[start].id
-        goal_id = self.graph.points[goal].id
-        #print start_id, goal_id
+        if self.start is None or self.goal is None:
+            # select two different way points at random
+            start, goal = random.sample(xrange(len(self.graph.points)), 2)
+            if self.start is None:
+                self.start = self.graph.points[start].id.uuid
+            if self.goal is None:
+                self.goal = self.graph.points[goal].id.uuid
+        print self.start, self.goal
+
         try:
-            resp = self.get_plan(self.graph.id, start_id, goal_id)
+            resp = self.get_plan(self.graph.id,
+                                 UniqueID(self.start),
+                                 UniqueID(self.goal))
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed: " + str(e))
         else:                           # get_map returned
