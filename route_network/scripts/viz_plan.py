@@ -106,13 +106,14 @@ class RouteVizNode():
         try:
             resp = self.get_plan(self.graph.id, start_id, goal_id)
         except rospy.ServiceException as e:
-            rospy.logerr("Service call failed:" + str(e))
+            rospy.logerr("Service call failed: " + str(e))
         else:                           # get_map returned
             #print resp
             if resp.success:
                 self.mark_plan(resp.plan)
             else:
-                rospy.logerr('get_route_plan failed, status:', str(resp.status))
+                rospy.logerr('get_route_plan failed, status: '
+                             + str(resp.status))
 
     def mark_plan(self, plan):
         """Publish visualization markers for a RoutePath.

@@ -1,20 +1,20 @@
 <!-- Launch file for visualizing OSM data
 
-     arg: map_url = URL for map data
+     arg: url = URL for map data
 
      $Id$
   -->
 
 <launch>
 
-  <arg name="map_url" default="package://osm_cartography/tests/prc.osm" />
+  <arg name="url" default="package://osm_cartography/tests/prc.osm" />
 
   <!-- start map server -->
   <node pkg="osm_cartography" type="osm_server.py" name="osm_server" />
 
   <!-- start map visualization -->
   <node pkg="osm_cartography" type="viz_osm.py" name="viz_osm" >
-    <param name="map_url" value="$(arg map_url)" />
+    <param name="map_url" value="$(arg url)" />
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="local_map_tf"

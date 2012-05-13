@@ -70,6 +70,7 @@ class VizNode():
         """ROS node to publish visualization markers for a GeographicMap.
         """
         rospy.init_node('viz_osm')
+        self.config = None
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker_array',
@@ -208,6 +209,8 @@ class VizNode():
         :returns: New config if valid, old one otherwise. That updates
                   the dynamic reconfigure GUI window.
         """
+        if self.config is None:
+            self.config = config
         rospy.loginfo('Map URL: ' + str(config['map_url']))
 
         try:

@@ -118,14 +118,15 @@ class Planner():
         :raises: :exc:`NoPathToGoalError` if goal not reachable.
         """
         # validate request parameters
-        if req.network != self.graph.id: # a different route network?
-            raise ValueError('invalid GetRoutePlan network: ' + str(req.network))
+        if req.network.uuid != self.graph.id.uuid: # different route network?
+            raise ValueError('invalid GetRoutePlan network: '
+                             + str(req.network.uuid))
         start = self.points.index(req.start)
         if start is None:
-            raise ValueError('unknown starting point: ' + str(req.start))
+            raise ValueError('unknown starting point: ' + str(req.start.uuid))
         goal = self.points.index(req.goal)
         if goal is None:
-            raise ValueError('unknown goal: ' + str(req.goal))
+            raise ValueError('unknown goal: ' + str(req.goal.uuid))
 
         # initialize plan
         plan = RoutePath(network=self.graph.id)

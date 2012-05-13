@@ -83,6 +83,7 @@ class RoutePlannerNode():
         :param req: GetRoutePlanRequest message
         :returns: GetRoutePlanResponse message
         """
+        rospy.loginfo('GetRoutePlan: ' + str(req))
         self.resp = GetRoutePlanResponse(plan = RoutePath())
         if self.graph is None:
             self.resp.success = False

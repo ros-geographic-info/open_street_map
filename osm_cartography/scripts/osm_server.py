@@ -75,10 +75,10 @@ class ServerNode:
         self.resp = GetGeographicMapResponse()
         try:
             self.resp.map = xml_map.get_osm(url, req.bounds)
-        except (IOError, ValueError) as error_msg:
-            rospy.logerr(error_msg)
+        except (IOError, ValueError) as e:
+            rospy.logerr(str(e))
             self.resp.success = False
-            self.resp.status = error_msg
+            self.resp.status = str(e)
         else:
             self.resp.success = True
             self.resp.status = url

@@ -115,7 +115,7 @@ def get_osm(url, bounds):
     else:
         raise ValueError('unsupported URL: ' + url)
 
-    map = GeographicMap()
+    map = GeographicMap(id = geodesy.gen_uuid.makeUniqueID(url))
     xm = None
     try:
         f = open(filename, 'r')

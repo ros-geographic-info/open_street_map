@@ -1,0 +1,20 @@
+<package>
+  <description brief="Open street map tests.">
+
+     These are regression tests for the osm_cartography and
+     route_network packages. They are packaged separately to avoid
+     unnecessary implementation dependencies.
+
+  </description>
+  <author>Jack O'Quin</author>
+  <license>BSD</license>
+  <review status="test" notes=""/>
+  <url>http://ros.org/wiki/test_osm</url>
+  <depend package="osm_cartography"/>
+  <depend package="route_network"/>
+  <depend package="geodesy"/>
+  <depend package="geographic_msgs"/>
+
+</package>
+
+

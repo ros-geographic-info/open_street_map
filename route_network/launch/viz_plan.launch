@@ -1,0 +1,18 @@
+<!-- Launch file for visualizing OSM route networks
+
+     arg: url = Uniform Resource Locator for map data
+
+     $Id$
+  -->
+
+<launch>
+
+  <arg name="url" default="" />
+
+  <!-- route planning node -->
+  <node pkg="route_network" type="plan_route.py" name="plan_route" />
+
+  <!-- route plan visualization -->
+  <node pkg="route_network" type="viz_plan.py" name="viz_plan" />
+
+</launch>

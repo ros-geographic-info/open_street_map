@@ -72,6 +72,19 @@ def is_route(feature):
     return geodesy.props.match(feature,
                                set(['bridge', 'highway', 'tunnel']))
 
+# URL, unique to this package
+PKG_URL = 'http://ros.org/wiki/' + PKG_NAME
+
+def makeGraph(msg):
+    """ Make RouteNetwork message.
+
+    :param msg: GeographicMap message.
+    :returns: RouteNetwork message.
+    """
+    uu = geodesy.gen_uuid.makeUniqueID(PKG_URL + '/map/' + 
+                                       str(msg.id.uuid) + '/routes')
+    return RouteNetwork(header = msg.header, id = uu, bounds = msg.bounds)
+
 def makeSeg(start, end, oneway=False):
     """ Make RouteSegment message.
 
@@ -80,7 +93,7 @@ def makeSeg(start, end, oneway=False):
     :param oneway: True if segment is one-way.
     :returns: RouteSegment message.
     """
-    uu = geodesy.gen_uuid.makeUniqueID('http://ros.org/wiki/route_network/'
+    uu = geodesy.gen_uuid.makeUniqueID(PKG_URL + '/'
                                        + str(start) + '/' + str(end))
     seg = RouteSegment(id = uu, start = start, end = end)
     if oneway:
@@ -93,6 +106,7 @@ class RouteNetNode():
         """ROS node to publish the route network graph for a GeographicMap.
         """
         rospy.init_node('route_network')
+        self.config = None
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('route_network',
@@ -112,8 +126,7 @@ class RouteNetNode():
         """
         self.map = msg
         self.map_points = geodesy.wu_point.WuPointSet(msg.points)
-        self.graph = RouteNetwork(header = msg.header,
-                                  bounds = msg.bounds)
+        self.graph = makeGraph(msg)
 
         # process each feature marked as a route
         for feature in itertools.ifilter(is_route, self.map.features):
@@ -139,12 +152,14 @@ class RouteNetNode():
         :returns: New config if valid, old one otherwise. That updates
                   the dynamic reconfigure GUI window.
         """
+        if self.config is None:
+            self.config = config
         rospy.loginfo('Map URL: ' + str(config['map_url']))
 
         try:
             resp = self.get_map(config['map_url'], BoundingBox())
         except rospy.ServiceException as e:
-            rospy.logerr("Service call failed:", str(e))
+            rospy.logerr("Service call failed: " + str(e))
             # ignore new config, it failed
         else:                           # get_map returned
             if resp.success:
@@ -153,7 +168,8 @@ class RouteNetNode():
                 # publish visualization markers (on a latched topic)
                 self.pub.publish(self.graph)
             else:
-                rospy.logerr('get_geographic_map failed, status:', str(resp.status))
+                rospy.logerr('get_geographic_map failed, status: '
+                             + str(resp.status))
 
         return self.config
     
