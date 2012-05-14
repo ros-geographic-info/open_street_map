@@ -121,11 +121,11 @@ class Planner():
         if req.network.uuid != self.graph.id.uuid: # different route network?
             raise ValueError('invalid GetRoutePlan network: '
                              + str(req.network.uuid))
-        start = self.points.index(req.start)
+        start = self.points.index(req.start.uuid)
         if start is None:
             raise ValueError('unknown starting point: '
                              + str(req.start.uuid))
-        goal = self.points.index(req.goal)
+        goal = self.points.index(req.goal.uuid)
         if goal is None:
             raise ValueError('unknown goal: ' + str(req.goal.uuid))
 
