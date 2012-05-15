@@ -56,12 +56,12 @@ from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
-class RouteVizNode():
+class VizPlanNode():
 
     def __init__(self):
         """ROS node to visualize a route plan.
         """
-        rospy.init_node('viz_routes')
+        rospy.init_node('viz_plan')
         self.graph = None
         self.start = rospy.get_param('~start', None)
         self.goal = rospy.get_param('~goal', None)
@@ -148,7 +148,7 @@ class RouteVizNode():
         self.pub.publish(marks)
     
 def main():
-    node_class = RouteVizNode()
+    node_class = VizPlanNode()
     try:
         rospy.spin()            # wait for messages
     except rospy.ROSInterruptException: pass
