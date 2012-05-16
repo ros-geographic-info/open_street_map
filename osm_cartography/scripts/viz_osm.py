@@ -75,10 +75,16 @@ class VizNode():
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker_array',
                                    MarkerArray, latch=True)
+        self.map = None
         self.msg = None
         rospy.wait_for_service('get_geographic_map')
         self.get_map = rospy.ServiceProxy('get_geographic_map',
                                           GetGeographicMap)
+
+        # refresh the markers every five seconds, making them last six.
+        self.timer_interval = rospy.Duration(5)
+        self.marker_life = self.timer_interval + rospy.Duration(1)
+        rospy.Timer(self.timer_interval, self.timer_callback)
 
         # register dynamic reconfigure callback, which runs immediately
         self.reconf_server = ReconfigureServer(Config, self.reconfigure)
@@ -121,7 +127,7 @@ class VizNode():
                         action = Marker.ADD,
                         scale = Vector3(x=2.),
                         color = color,
-                        lifetime = rospy.Duration())
+                        lifetime = self.marker_life)
     
         # Convert bounds latitudes and longitudes to UTM (no
         # altitude), convert UTM points to geometry_msgs/Point
@@ -166,7 +172,7 @@ class VizNode():
                             action = Marker.ADD,
                             scale = Vector3(x=2.),
                             color = color,
-                            lifetime = rospy.Duration())
+                            lifetime = self.marker_life)
             index += 1
             prev_point = None
             for mbr in feature.components:
@@ -193,7 +199,7 @@ class VizNode():
                             action = Marker.ADD,
                             scale = Vector3(x=2., y=2., z=0.2),
                             color = color,
-                            lifetime = rospy.Duration())
+                            lifetime = self.marker_life)
             index += 1
             # use easting and northing coordinates (ignoring altitude)
             marker.pose.position = wp.toPointXY()
@@ -228,7 +234,15 @@ class VizNode():
                 print('get_geographic_map failed, status:', str(resp.status))
 
         return self.config
-    
+
+    def timer_callback(self, event):
+        """ Called periodically to refresh map visualization. """
+        if self.msg is not None:
+            now = rospy.Time.now()
+            for m in self.msg.markers:
+                m.header.stamp = now
+            self.pub.publish(self.msg)
+
 def main():
     viznode = VizNode()
     try:
