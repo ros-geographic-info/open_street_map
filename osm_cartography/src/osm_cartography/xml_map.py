@@ -149,7 +149,7 @@ def get_osm(url, bounds):
         for tag_list in el.iterfind('tag'):
             kv = get_tag(tag_list)
             if kv != None:
-                way.tags.append(kv)
+                way.props.append(kv)
 
         map.points.append(way)
 
@@ -169,7 +169,7 @@ def get_osm(url, bounds):
         for tag_list in el.iterfind('tag'):
             kv = get_tag(tag_list)
             if kv != None:
-                feature.tags.append(kv)
+                feature.props.append(kv)
 
         map.features.append(feature)
 
@@ -193,7 +193,7 @@ def get_osm(url, bounds):
         for tag_list in el.iterfind('tag'):
             kv = get_tag(tag_list)
             if kv != None:
-                feature.tags.append(kv)
+                feature.props.append(kv)
 
         map.features.append(feature)
 

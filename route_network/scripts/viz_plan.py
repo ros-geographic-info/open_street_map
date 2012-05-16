@@ -87,18 +87,18 @@ class VizPlanNode():
         :post: self.graph = RouteNetwork message
         :post: self.points = visualization markers message.
         """
-        self.graph = graph
         self.points = geodesy.wu_point.WuPointSet(graph.points)
         self.segment_ids = {}   # segments symbol table
         for sid in xrange(len(graph.segments)):
             self.segment_ids[graph.segments[sid].id.uuid] = sid
+        self.graph = graph
 
     def timer_callback(self, event):
         """ Called periodically. """
         if self.graph is None:
             print 'still waiting for graph'
             return
-        print 'Timer called at ' + str(event.current_real)
+        #print 'Timer called at ' + str(event.current_real)
 
         if self.start is None or self.goal is None:
             # select two different way points at random
@@ -120,6 +120,9 @@ class VizPlanNode():
             if resp.success:
                 self.mark_plan(resp.plan)
             else:
+                # planning failed: try different way points next time
+                self.start = None
+                self.goal = None
                 rospy.logerr('get_route_plan failed, status: '
                              + str(resp.status))
 

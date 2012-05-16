@@ -101,8 +101,8 @@ class VizNode():
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
 
         # define arguments for displaying various feature types
-        road_tags = set(['bridge', 'highway', 'tunnel'])
-        fargs = [(lambda(f): geodesy.props.match(f, road_tags),
+        road_props = set(['bridge', 'highway', 'tunnel'])
+        fargs = [(lambda(f): geodesy.props.match(f, road_props),
                   ColorRGBA(r=8., g=0.2, b=0.2, a=0.8),
                   "roads_osm"),
                  (lambda(f): geodesy.props.match(f, set(['building'])),
@@ -159,8 +159,8 @@ class VizNode():
         :param color: RGBA value
         :param namespace: Rviz namespace.
 
-        :todo: differentiate tags for: highway, building, bridge,
-               tunnel, amenity, etc.
+        :todo: differentiate properties for: highway, building,
+               bridge, tunnel, amenity, etc.
         """
         index = 0
         for feature in itertools.ifilter(predicate,

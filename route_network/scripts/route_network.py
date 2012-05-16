@@ -97,7 +97,7 @@ def makeSeg(start, end, oneway=False):
                                        + str(start) + '/' + str(end))
     seg = RouteSegment(id = uu, start = start, end = end)
     if oneway:
-        seg.tags.append(KeyValue(key = 'oneway', value = 'yes'))
+        seg.props.append(KeyValue(key = 'oneway', value = 'yes'))
     return seg
 
 class RouteNetNode():
