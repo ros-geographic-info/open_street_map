@@ -68,12 +68,17 @@ class RouteVizNode():
         self.pub = rospy.Publisher('visualization_marker_array',
                                    MarkerArray, latch=True)
 
+        # refresh the markers every three seconds, making them last four.
+        self.timer_interval = rospy.Duration(3)
+        self.marker_life = self.timer_interval + rospy.Duration(1)
+        rospy.Timer(self.timer_interval, self.timer_callback)
+
         # subscribe to route network
         self.sub = rospy.Subscriber('route_network', RouteNetwork,
                                     self.graph_callback)
 
     def graph_callback(self, graph):
-        """Publish visualization markers for a RouteNetwork graph.
+        """Create visualization markers from a RouteNetwork graph.
 
         :param graph: RouteNetwork message
 
@@ -87,8 +92,6 @@ class RouteVizNode():
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
         self.mark_segments(ColorRGBA(r=1., g=1., b=0., a=0.8),
                            ColorRGBA(r=1., g=0., b=1., a=0.8))
-
-        self.pub.publish(self.marks)
 
     def mark_segments(self, color1, color2):
         """Create lines for segments.
@@ -108,7 +111,7 @@ class RouteVizNode():
                             action = Marker.ADD,
                             scale = Vector3(x=2.),
                             color = color,
-                            lifetime = rospy.Duration())
+                            lifetime = self.marker_life)
             index += 1
             marker.points.append(self.points[segment.start.uuid].toPointXY())
             marker.points.append(self.points[segment.end.uuid].toPointXY())
@@ -128,12 +131,20 @@ class RouteVizNode():
                             action = Marker.ADD,
                             scale = Vector3(x=2., y=2., z=0.2),
                             color = color,
-                            lifetime = rospy.Duration())
+                            lifetime = self.marker_life)
             index += 1
             # use easting and northing coordinates (ignoring altitude)
             marker.pose.position = wp.toPointXY()
             marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
             self.marks.markers.append(marker)
+
+    def timer_callback(self, event):
+        """ Called periodically to refresh route network visualization. """
+        if self.marks is not None:
+            now = rospy.Time.now()
+            for m in self.marks.markers:
+                m.header.stamp = now
+            self.pub.publish(self.marks)
     
 def main():
     node_class = RouteVizNode()

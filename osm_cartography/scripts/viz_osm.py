@@ -81,8 +81,8 @@ class VizNode():
         self.get_map = rospy.ServiceProxy('get_geographic_map',
                                           GetGeographicMap)
 
-        # refresh the markers every five seconds, making them last six.
-        self.timer_interval = rospy.Duration(5)
+        # refresh the markers every three seconds, making them last four.
+        self.timer_interval = rospy.Duration(3)
         self.marker_life = self.timer_interval + rospy.Duration(1)
         rospy.Timer(self.timer_interval, self.timer_callback)
 
