@@ -12,6 +12,7 @@
   <depend stack="common_msgs" /> <!-- nav_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="driver_common" /> <!-- dynamic_reconfigure -->
   <depend stack="geographic_info" /> <!-- geographic_msgs, geodesy -->
+  <depend stack="geometry" /> <!-- tf -->
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- std_msgs, rospy -->
 

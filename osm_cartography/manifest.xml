@@ -13,6 +13,7 @@
   <depend package="geographic_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="rospy"/>
+  <depend package="tf"/>
   <depend package="std_msgs"/>
   <depend package="visualization_msgs"/>
   <export>
