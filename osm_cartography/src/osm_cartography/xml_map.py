@@ -64,7 +64,7 @@ def get_required_attribute(el, key):
         raise ValueError('required attribute missing: ' + key)
     return val
 
-def makeUniqueID(namespace, id):
+def makeOsmUniqueID(namespace, id):
     """Make UniqueID message for id number in OSM sub-namespace ns.
 
     :param namespace: OSM sub-namespace
@@ -140,7 +140,7 @@ def get_osm(url, bounds):
         id = el.get('id')
         if id == None:
             raise ValueError('node id missing')
-        way.id = makeUniqueID('node', id)
+        way.id = makeOsmUniqueID('node', id)
 
         way.position.latitude = float(get_required_attribute(el, 'lat'))
         way.position.longitude = float(get_required_attribute(el, 'lon'))
@@ -160,11 +160,11 @@ def get_osm(url, bounds):
         id = el.get('id')
         if id == None:
             raise ValueError('way id missing')
-        feature.id = makeUniqueID('way', id)
+        feature.id = makeOsmUniqueID('way', id)
 
         for nd in el.iterfind('nd'):
             way_id = get_required_attribute(nd, 'ref')
-            feature.components.append(makeUniqueID('node', way_id))
+            feature.components.append(makeOsmUniqueID('node', way_id))
 
         for tag_list in el.iterfind('tag'):
             kv = get_tag(tag_list)
@@ -180,13 +180,13 @@ def get_osm(url, bounds):
         id = el.get('id')
         if id == None:
             raise ValueError('relation id missing')
-        feature.id = makeUniqueID('relation', id)
+        feature.id = makeOsmUniqueID('relation', id)
 
         for mbr in el.iterfind('member'):
             mbr_type = get_required_attribute(mbr, 'type')
             if mbr_type in set(['node', 'way', 'relation']):
                 mbr_id = get_required_attribute(mbr, 'ref')
-                feature.components.append(makeUniqueID(mbr_type, mbr_id))
+                feature.components.append(makeOsmUniqueID(mbr_type, mbr_id))
             else:
                 print('unknown relation member type: ' + mbr_type)
 
