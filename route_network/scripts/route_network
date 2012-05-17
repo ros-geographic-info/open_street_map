@@ -133,9 +133,9 @@ class RouteNetNode():
             oneway = is_oneway(feature)
             start = None
             for mbr in feature.components:
-                pt = self.map_points.get(mbr.uuid).toWayPoint()
+                pt = self.map_points.get(mbr.uuid)
                 if pt is not None:      # known way point?
-                    self.graph.points.append(pt)
+                    self.graph.points.append(pt.toWayPoint())
                     end = UniqueID(uuid = mbr.uuid)
                     if start is not None:
                         self.graph.segments.append(makeSeg(start, end, oneway))
