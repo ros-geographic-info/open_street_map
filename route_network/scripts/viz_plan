@@ -77,7 +77,9 @@ class VizPlanNode():
         self.sub = rospy.Subscriber('route_network', RouteNetwork,
                                     self.graph_callback)
 
-        rospy.Timer(rospy.Duration(2), self.timer_callback)
+        self.timer_interval = rospy.Duration(4)
+        self.marker_life = self.timer_interval + rospy.Duration(1)
+        rospy.Timer(self.timer_interval, self.timer_callback)
 
     def graph_callback(self, graph):
         """Handle RouteNetwork message.
@@ -132,18 +134,20 @@ class VizPlanNode():
         :param plan: RoutePath message
         """
         marks = MarkerArray()
+        hdr = self.graph.header
+        hdr.stamp = rospy.Time.now()
         index = 0
-        for seg_id in plan.segments:
-            marker = Marker(header = self.graph.header,
+        for seg_msg in plan.segments:
+            marker = Marker(header = hdr,
                             ns = 'plan_segments',
                             id = index,
                             type = Marker.LINE_STRIP,
                             action = Marker.ADD,
                             scale = Vector3(x=4.0),
-                            color = ColorRGBA(r=1.0, a=0.8),
-                            lifetime = rospy.Duration())
+                            color = ColorRGBA(r=1.0, g=1.0, b=1.0, a=0.8),
+                            lifetime = self.marker_life)
             index += 1
-            segment = self.graph.segments[self.segment_ids[seg_id]]
+            segment = self.graph.segments[self.segment_ids[seg_msg.uuid]]
             marker.points.append(self.points[segment.start.uuid].toPointXY())
             marker.points.append(self.points[segment.end.uuid].toPointXY())
             marks.markers.append(marker)
