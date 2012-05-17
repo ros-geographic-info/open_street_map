@@ -144,7 +144,8 @@ class Planner():
         backpath = [None for wid in xrange(len(self.points))]
         while True:
             if len(open) == 0:
-                raise NoPathToGoalError('No path from start to goal.')
+                raise NoPathToGoalError('No path from ' + req.start.uuid
+                                        + ' to ' + req.goal.uuid)
             open.sort()         # :todo: make search more efficient
             open.reverse()
             h, e = open.pop()
