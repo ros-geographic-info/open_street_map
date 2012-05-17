@@ -6,6 +6,7 @@ import roslib; roslib.load_manifest(PKG)
 import unittest
 
 import geodesy.props
+import geodesy.gen_uuid
 import geodesy.wu_point
 
 from geographic_msgs.msg import GeoPoint
@@ -20,6 +21,25 @@ from geometry_msgs.msg import Quaternion
 
 # module to test
 from route_network.planner import *
+
+# :todo: place this in a module...
+PKG_URL = 'http://ros.org/wiki/' + PKG
+def makeSeg(start, end, oneway=False):
+    """ Make RouteSegment message.
+
+    :param start:  Initial UUID.
+    :param end:    Final UUID.
+    :param oneway: True if segment is one-way.
+    :returns: RouteSegment message.
+    """
+    uu = geodesy.gen_uuid.makeUniqueID(PKG_URL + '/'
+                                       + str(start) + '/' + str(end))
+    seg = RouteSegment(id = uu,
+                       start = UniqueID(uuid=start),
+                       end = UniqueID(uuid=end))
+    if oneway:
+        seg.props.append(KeyValue(key = 'oneway', value = 'yes'))
+    return seg
 
 def makeRequest(network, start, goal):
     return GetRoutePlanRequest(UniqueID(uuid=network),
@@ -91,6 +111,48 @@ def triangle_graph():
                     'da7c242f-2efe-5175-9961-49cc621b80b9')
     geodesy.props.put(s, 'oneway', 'yes')
     r.segments.append(s)
+    return r
+
+def float_range(begin, end, step):
+    val = begin
+    while val < end:
+        yield val
+        val += step
+
+def grid_graph(min_lat, min_lon, max_lat, max_lon, step=0.001):
+    """Generate a fully-connected rectangular grid.
+
+    :param min_lat: Initial latitude [degrees].
+    :param min_lon: Initial longitude [degrees].
+    :param max_lat: Latitude limit [degrees].
+    :param max_lon: Longitude limit [degrees].
+    :param step: Step size [degrees].
+    :returns: RouteNetwork message.
+    """
+    nid = geodesy.gen_uuid.makeUniqueID(PKG_URL + '/test_network')
+    r = RouteNetwork(id=nid)
+    prev_row = None
+    for latitude in float_range(min_lat, max_lat, step):
+        prev_col = None
+        this_row = len(r.points)
+        for longitude in float_range(min_lon, max_lon, step):
+            fake_url = 'fake://point/' + str(latitude) + '/' + str(longitude)
+            pt_id = geodesy.gen_uuid.generate(fake_url)
+            r.points.append(makeWayPoint(pt_id, latitude, longitude))
+            if prev_col is not None:
+                s = makeSeg(prev_col, pt_id)
+                r.segments.append(s)
+                s = makeSeg(pt_id, prev_col)
+                r.segments.append(s)
+            prev_col = pt_id
+            if prev_row is not None:
+                prev_id = r.points[prev_row].id.uuid
+                s = makeSeg(prev_id, pt_id)
+                r.segments.append(s)
+                s = makeSeg(pt_id, prev_id)
+                r.segments.append(s)
+                prev_row += 1
+        prev_row = this_row
     return r
 
 class TestPlanner(unittest.TestCase):
@@ -209,7 +271,29 @@ class TestPlanner(unittest.TestCase):
         self.assertEqual(path.segments[1].uuid,
                          '8f2c2df3-be73-5ba5-202b-cb4aafec6498')
         
+    def test_2x2_grid(self):
+        # generate a fully-connected 2x2 grid
+        g = grid_graph(0.0, 0.0, 0.002, 0.002)
+        pl = Planner(g)
+        #self.fail(msg=str(pl))
+        # all pairs of points should have a valid path
+        for pt1 in g.points:
+            for pt2 in g.points:
+                path = pl.planner(makeRequest(g.id.uuid,
+                                              pt1.id.uuid,
+                                              pt2.id.uuid))
+        
+    def test_3x3_grid(self):
+        # generate a fully-connected 3x3 grid
+        g = grid_graph(-0.003, -0.003, 0.0, 0.0)
+        pl = Planner(g)
+        # all pairs of points should have a valid path
+        for pt1 in g.points:
+            for pt2 in g.points:
+                path = pl.planner(makeRequest(g.id.uuid,
+                                              pt1.id.uuid,
+                                              pt2.id.uuid))
 
 if __name__ == '__main__':
     import rosunit
-    rosunit.unitrun(PKG, 'test_geo_map_py', TestPlanner) 
+    rosunit.unitrun(PKG, 'test_planner_py', TestPlanner) 

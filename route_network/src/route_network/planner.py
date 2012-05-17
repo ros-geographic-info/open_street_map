@@ -67,7 +67,7 @@ class Edge():
         convenient access to the data.
 
         :param end: Index of ending way point.
-        :param seg: Corresponding RouteSegment.
+        :param seg: UniqueID of corresponding RouteSegment.
         :param heuristic: Distance heuristic from start to end (must
                      *not* be an over-estimate).
         """
@@ -76,7 +76,7 @@ class Edge():
         self.h = heuristic
 
     def __str__(self):
-        return str(self.end) + ' (' + str(self.h) + ')'
+        return str(self.end)+' '+str(self.seg.uuid)+' ('+str(self.h)+')'
 
 class Planner():
     """
@@ -104,10 +104,14 @@ class Planner():
                     dist = self.points.distance2D(index, n)
                     self.edges[index].append(Edge(n, seg.id,
                                                   heuristic=dist))
-        ## Debug output:
-        #for i in xrange(len(self.edges)):
-        #    for k in self.edges[i]:
-        #        print i, '->', k
+
+    def __str__(self):
+        val = '\n'
+        for i in xrange(len(self.edges)):
+            val += str(i) + ':\n'
+            for k in self.edges[i]:
+                val += '    ' + str(k) + '\n'
+        return val
 
     def planner(self, req):
         """ Plan route from start to goal.
@@ -121,12 +125,12 @@ class Planner():
         if req.network.uuid != self.graph.id.uuid: # different route network?
             raise ValueError('invalid GetRoutePlan network: '
                              + str(req.network.uuid))
-        start = self.points.index(req.start.uuid)
-        if start is None:
+        start_idx = self.points.index(req.start.uuid)
+        if start_idx is None:
             raise ValueError('unknown starting point: '
                              + str(req.start.uuid))
-        goal = self.points.index(req.goal.uuid)
-        if goal is None:
+        goal_idx = self.points.index(req.goal.uuid)
+        if goal_idx is None:
             raise ValueError('unknown goal: ' + str(req.goal.uuid))
 
         # initialize plan
@@ -134,17 +138,17 @@ class Planner():
         plan.network = req.network
 
         # A* shortest path algorithm
-        open = [[0.0, start]]
+        open = [[0.0, start_idx]]
         closed = [False for wid in xrange(len(self.points))]
+        closed[start_idx] = True
         backpath = [None for wid in xrange(len(self.points))]
-        e = start
         while True:
             if len(open) == 0:
                 raise NoPathToGoalError('No path from start to goal.')
             open.sort()         # :todo: make search more efficient
             open.reverse()
             h, e = open.pop()
-            if e == goal:
+            if e == goal_idx:
                 break
             for edge in self.edges[e]:
                 e2 = edge.end
@@ -156,10 +160,10 @@ class Planner():
 
         # generate plan segments from backpath
         plan.segments = []
-        e = goal
+        e = goal_idx
         while backpath[e] is not None:
             plan.segments.append(backpath[e][1].seg)
             e = backpath[e][0]
-        assert(e == start)
+        assert(e == start_idx)
         plan.segments.reverse()
         return plan
