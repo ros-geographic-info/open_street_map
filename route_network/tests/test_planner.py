@@ -282,10 +282,21 @@ class TestPlanner(unittest.TestCase):
                 path = pl.planner(makeRequest(g.id.uuid,
                                               pt1.id.uuid,
                                               pt2.id.uuid))
-        
+
     def test_3x3_grid(self):
         # generate a fully-connected 3x3 grid
         g = grid_graph(-0.003, -0.003, 0.0, 0.0)
+        pl = Planner(g)
+        # all pairs of points should have a valid path
+        for pt1 in g.points:
+            for pt2 in g.points:
+                path = pl.planner(makeRequest(g.id.uuid,
+                                              pt1.id.uuid,
+                                              pt2.id.uuid))
+
+    def test_10x10_grid(self):
+        # generate a fully-connected 10x10 grid
+        g = grid_graph(0.0, 0.0, 0.01, 0.01)
         pl = Planner(g)
         # all pairs of points should have a valid path
         for pt1 in g.points:
