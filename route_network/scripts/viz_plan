@@ -63,8 +63,6 @@ class VizPlanNode():
         """
         rospy.init_node('viz_plan')
         self.graph = None
-        self.start = rospy.get_param('~start', None)
-        self.goal = rospy.get_param('~goal', None)
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker_array',
@@ -100,31 +98,23 @@ class VizPlanNode():
         if self.graph is None:
             print 'still waiting for graph'
             return
-        #print 'Timer called at ' + str(event.current_real)
 
-        if self.start is None or self.goal is None:
-            # select two different way points at random
-            start, goal = random.sample(xrange(len(self.graph.points)), 2)
-            if self.start is None:
-                self.start = self.graph.points[start].id.uuid
-            if self.goal is None:
-                self.goal = self.graph.points[goal].id.uuid
+        # select two different way points at random
+        idx0, idx1 = random.sample(xrange(len(self.graph.points)), 2)
+        start = self.graph.points[idx0].id.uuid
+        goal = self.graph.points[idx1].id.uuid
+        rospy.loginfo('plan from ' + start + ' to ' + goal)
 
-        rospy.loginfo('plan from ' + self.start + ' to ' + self.goal)
         try:
             resp = self.get_plan(self.graph.id,
-                                 UniqueID(uuid=self.start),
-                                 UniqueID(uuid=self.goal))
+                                 UniqueID(uuid=start),
+                                 UniqueID(uuid=goal))
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed: " + str(e))
         else:                           # get_map returned
-            #print resp
             if resp.success:
                 self.mark_plan(resp.plan)
             else:
-                # planning failed: try different way points next time
-                self.start = None
-                self.goal = None
                 rospy.logerr('get_route_plan failed, status: '
                              + str(resp.status))
 
