@@ -10,12 +10,12 @@
   <arg name="url" default="" />
 
   <!-- network graph node -->
-  <node pkg="route_network" type="route_network.py" name="route_network" >
+  <node pkg="route_network" type="route_network" name="route_network" >
     <param name="map_url" value="$(arg url)" />
   </node>
 
   <!-- network graph visualization -->
-  <node pkg="route_network" type="viz_routes.py" name="viz_routes" >
+  <node pkg="route_network" type="viz_routes" name="viz_routes" >
     <param name="map_url" value="$(arg url)" />
   </node>
 

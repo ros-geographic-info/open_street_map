@@ -20,7 +20,7 @@
   </include>
 
   <!-- route planning node -->
-  <node pkg="route_network" type="plan_route.py" name="plan_route" />
+  <node pkg="route_network" type="plan_route" name="plan_route" />
 
   <!-- start route planning, with visualization
   <include file="$(find route_network)/launch/viz_plan.launch" />

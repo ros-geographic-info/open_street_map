@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (C) 2012, Jack O'Quin
@@ -34,7 +34,7 @@
 # Revision $Id$
 
 """
-Request geographic information maps from Open Street Map server.
+Provide geographic information maps from Open Street Map on request.
 
 This is just a toy node, useful for testing.
 """
@@ -45,36 +45,52 @@ PKG_NAME = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
 
-import sys
-
-from geographic_msgs.msg import BoundingBox
 from geographic_msgs.srv import GetGeographicMap
+from geographic_msgs.srv import GetGeographicMapResponse
 
-def client_node(url):
+from osm_cartography import xml_map
 
-    rospy.init_node('osm_client')
-    rospy.wait_for_service('get_geographic_map')
+class ServerNode:
+    
+    def __init__(self):
+        rospy.init_node('osm_server')
+        self.srv = rospy.Service('get_geographic_map', GetGeographicMap,
+                                 self.map_server)
+        self.resp = None
 
-    try:
-        get_map = rospy.ServiceProxy('get_geographic_map', GetGeographicMap)
-        resp = get_map(url, BoundingBox())
-        if resp.success:
-            print(resp.map)
+    def map_server(self, req):
+        """ GetGeographicMap service callback.
+
+        :param req: Request.
+        :returns: Response.
+        """
+        url = str(req.url)
+        self.url = url
+        rospy.loginfo('[get_geographic_map] ' + url)
+
+        # if empty URL, return existing map
+        if url == '' and self.resp is not None: 
+            return self.resp
+
+        self.resp = GetGeographicMapResponse()
+        try:
+            self.resp.map = xml_map.get_osm(url, req.bounds)
+        except (IOError, ValueError) as e:
+            rospy.logerr(str(e))
+            self.resp.success = False
+            self.resp.status = str(e)
         else:
-            print('get_geographic_map failed, status: ', str(resp.status))
+            self.resp.success = True
+            self.resp.status = url
+            self.resp.map.header.stamp = rospy.Time.now()
+            self.resp.map.header.frame_id = '/map'
+        return self.resp
 
-    except rospy.ServiceException, e:
-        print("Service call failed: " + str(e))
+    def run(self):
+        rospy.spin()
 
 if __name__ == '__main__':
-
-    url = ''
-    if len(sys.argv) == 2:
-        url = sys.argv[1]
-    else:
-        print('usage: osm_client <map_URL>')
-        sys.exit(-9)
-
+    server = ServerNode()
     try:
-        client_node(url)
+        server.run()
     except rospy.ROSInterruptException: pass

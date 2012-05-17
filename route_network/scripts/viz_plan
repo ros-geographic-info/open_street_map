@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (C) 2012, Jack O'Quin
@@ -107,8 +107,8 @@ class VizPlanNode():
                 self.start = self.graph.points[start].id.uuid
             if self.goal is None:
                 self.goal = self.graph.points[goal].id.uuid
-        print self.start, self.goal
 
+        rospy.loginfo('plan from ' + self.start + ' to ' + self.goal)
         try:
             resp = self.get_plan(self.graph.id,
                                  UniqueID(uuid=self.start),

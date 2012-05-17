@@ -6,9 +6,9 @@
 <launch>
 
   <!-- route planning node -->
-  <node pkg="route_network" type="plan_route.py" name="plan_route" />
+  <node pkg="route_network" type="plan_route" name="plan_route" />
 
   <!-- route plan visualization -->
-  <node pkg="route_network" type="viz_plan.py" name="viz_plan" />
+  <node pkg="route_network" type="viz_plan" name="viz_plan" />
 
 </launch>
