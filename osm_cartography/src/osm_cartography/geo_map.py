@@ -37,6 +37,10 @@
 
 Class for manipulating GeographicMap data.
 
+.. _`geographic_msgs/BoundingBox`: http://ros.org/doc/api/geographic_msgs/html/msg/BoundingBox.html
+.. _`geographic_msgs/GeographicMap`: http://ros.org/doc/api/geographic_msgs/html/msg/GeographicMap.html
+.. _`std_msgs/Header`: http://ros.org/doc/api/std_msgs/html/msg/Header.html
+
 """
 
 from __future__ import print_function
@@ -56,7 +60,7 @@ from geometry_msgs.msg import Point
 
 class GeoMap():
     """
-    :class:`GeoMap` provides an internal GeographicMap representation.
+    :class:`GeoMap` provides an internal `geographic_msgs/GeographicMap`_ representation.
     """
 
     def __init__(self, gmap):
@@ -65,7 +69,7 @@ class GeoMap():
         Collects relevant information from the geographic map message,
         and provides convenient access to the data.
 
-        :param gmap: geographic_msgs/GeographicMap message
+        :param gmap: `geographic_msgs/GeographicMap`_ message
         """
         self.gmap = gmap
 
@@ -77,19 +81,17 @@ class GeoMap():
             self.feature_ids[feat[fid].id.uuid] = fid
 
     def bounds(self):
-        """ Get GeographicMap message BoundingBox
-        """
+        """ Get `geographic_msgs/GeographicMap`_ message `geographic_msgs/BoundingBox`_ """
         return self.gmap.bounds
 
     def header(self):
-        """ Get GeographicMap message Header
-        """
+        """ Get `geographic_msgs/GeographicMap`_ message `std_msgs/Header`_ """
         return self.gmap.header
 
 class GeoMapFeatures():
     """
-    :class:`GeoMapFeatures` provides an filtering iterator for the
-    features in a GeoMap.
+    :class:`GeoMapFeatures` provides a filtering iterator for the
+    features in a :class:`osm_cartography.geo_map.GeoMap`.
     """
 
     def __init__(self, gmap):
@@ -98,7 +100,7 @@ class GeoMapFeatures():
         Collects relevant feature information from the geographic map
         message, and provides convenient access to the data.
 
-        :param gmap: geographic_msgs/GeographicMap message
+        :param gmap: `geographic_msgs/GeographicMap`_ message 
         """
         self.gmap = gmap
 
@@ -127,7 +129,7 @@ class GeoMapFeatures():
     def next(self):
         """ Next matching feature.
 
-        :returns: WuPoint object for next point
+        :returns: :class:`geodesy.wu_point.WuPoint` object for next point
         :raises: :exc:`StopIteration` when finished.
         """
         i = self.iter_index

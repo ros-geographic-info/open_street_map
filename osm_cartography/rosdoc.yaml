@@ -1,2 +1,3 @@
 - builder: sphinx
-   name: Python API
+  name: Python API
+  output_dir: python

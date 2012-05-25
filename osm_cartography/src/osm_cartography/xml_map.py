@@ -35,6 +35,12 @@
 
 """
 Generate geographic information maps based on Open Street Map XML data.
+
+.. _`geographic_msgs/BoundingBox`: http://ros.org/doc/api/geographic_msgs/html/msg/BoundingBox.html
+.. _`geographic_msgs/GeographicMap`: http://ros.org/doc/api/geographic_msgs/html/msg/GeographicMap.html
+.. _`geographic_msgs/KeyValue`: http://ros.org/doc/api/geographic_msgs/html/msg/KeyValue.html
+.. _`geographic_msgs/UniqueID`: http://ros.org/doc/api/geographic_msgs/html/msg/UniqueID.html
+
 """
 
 from __future__ import print_function
@@ -55,7 +61,7 @@ from geographic_msgs.msg import UniqueID
 from geographic_msgs.msg import WayPoint
 
 def get_required_attribute(el, key):
-    """ Get attribute key of element el.
+    """ Get attribute key of element *el*.
 
     :raises:  :exc:`ValueError` if key not found
     """
@@ -65,14 +71,14 @@ def get_required_attribute(el, key):
     return val
 
 def makeOsmUniqueID(namespace, id):
-    """Make UniqueID message for id number in OSM sub-namespace ns.
+    """Make UniqueID message for *id* number in OSM sub-namespace *namespace*.
 
     :param namespace: OSM sub-namespace
     :type  namespace: string
     :param id: OSM identifier within that namespace
     :type  id: int or string containing an integer
 
-    :returns: corresponding UniqueID message.
+    :returns: corresponding `geographic_msgs/UniqueID`_ message.
     :raises:  :exc:`ValueError`
     """
     if not namespace in set(['node', 'way', 'relation']):
@@ -80,12 +86,8 @@ def makeOsmUniqueID(namespace, id):
     ns = 'http://openstreetmap.org/' + namespace + '/'
     return geodesy.gen_uuid.makeUniqueID(ns, id)
 
-
 def get_tag(el):
-    """ Get a KeyValue pair from a <tag> element.
-    
-    :returns: KeyValue pair if any, None otherwise.
-    """
+    """ :returns: `geographic_msgs/KeyValue`_ message for `<tag>` *el* if any, None otherwise. """
     pair = None
     key = el.get('k')
     if key != None:
@@ -95,14 +97,14 @@ def get_tag(el):
         return pair
     
 def get_osm(url, bounds):
-    """Get GeographicMap from Open Street Map XML data.
+    """Get `geographic_msgs/GeographicMap`_ from Open Street Map XML data.
 
-    The latitude and longitude bounding box returned may differ from
-    the requested bounds.
+    The latitude and longitude of the bounding box returned may differ
+    from the requested bounds.
 
     :param url:    Uniform Resource Locator for map.
-    :param bounds: Desired bounding box for map (presently ignored).
-    :returns: GeographicMap message with header not filled in.
+    :param bounds: Desired `geographic_msgs/BoundingBox`_ for map (presently ignored).
+    :returns: `geographic_msgs/GeographicMap`_ message (header not filled in).
     """
     # parse the URL
     filename = ''

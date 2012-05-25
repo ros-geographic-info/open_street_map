@@ -11,19 +11,12 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-Python API
-^^^^^^^^^^
-
-.. :py:mod:`osm_cartography.geo_map`
-   :members:
-
-.. :py:mod:`osm_cartography.xml_map`
-   :members:
+   osm_cartography.geo_map
+   osm_cartography.xml_map
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
 
