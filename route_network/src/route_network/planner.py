@@ -33,7 +33,12 @@
 # Revision $Id$
 
 """
-.. module:: planner: Route network path planner.
+Route network path planner.
+
+.. _`geographic_msgs/GetRoutePlan`: http://ros.org/doc/api/geographic_msgs/html/srv/GetRoutePlan.html
+.. _`geographic_msgs/RouteNetwork`: http://ros.org/doc/api/geographic_msgs/html/msg/RouteNetwork.html
+.. _`geographic_msgs/RoutePath`: http://ros.org/doc/api/geographic_msgs/html/msg/RoutePath.html
+.. _`geographic_msgs/UniqueID`: http://ros.org/doc/api/geographic_msgs/html/msg/UniqueID.html
 
 """
 
@@ -59,18 +64,14 @@ class NoPathToGoalError(PlannerError):
 class Edge():
     """
     :class:`Edge` stores graph edge data for a way point.
+
+    :param end: Index of ending way point.
+    :param seg: `geographic_msgs/UniqueID`_ of corresponding RouteSegment.
+    :param heuristic: Distance heuristic from start to end (must
+                      *not* be an over-estimate).
     """
     def __init__(self, end, seg, heuristic=0.0):
-        """Constructor.
-
-        Collects relevant information from a route segment, providing
-        convenient access to the data.
-
-        :param end: Index of ending way point.
-        :param seg: UniqueID of corresponding RouteSegment.
-        :param heuristic: Distance heuristic from start to end (must
-                     *not* be an over-estimate).
-        """
+        """Constructor. """
         self.end = end
         self.seg = seg
         self.h = heuristic
@@ -81,14 +82,14 @@ class Edge():
 class Planner():
     """
     :class:`Planner` plans a route through a RouteNetwork.
+
+    :param graph: `geographic_msgs/RouteNetwork`_ message.
     """
     def __init__(self, graph):
         """Constructor.
 
         Collects relevant information from route network message,
         providing convenient access to the data.
-
-        :param graph: RouteNetwork message
         """
         self.graph = graph
         self.points = geodesy.wu_point.WuPointSet(graph.points)
@@ -116,8 +117,8 @@ class Planner():
     def planner(self, req):
         """ Plan route from start to goal.
 
-        :param req: geographic_msgs/GetRoutePlanRequest message.
-        :returns: geographic_msgs/RoutePath message.
+        :param req: `geographic_msgs/GetRoutePlan`_ request message.
+        :returns: `geographic_msgs/RoutePath`_ message.
         :raises: :exc:`ValueError` if invalid request.
         :raises: :exc:`NoPathToGoalError` if goal not reachable.
         """

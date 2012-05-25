@@ -11,10 +11,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   route_network.planner
+
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
 
