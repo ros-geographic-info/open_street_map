@@ -37,13 +37,16 @@
 
 Class for manipulating GeographicMap data.
 
+.. warning::
+
+   This module is *unstable* and still evolving. It will probably end
+   up residing in some other package.
+
 .. _`geographic_msgs/BoundingBox`: http://ros.org/doc/api/geographic_msgs/html/msg/BoundingBox.html
 .. _`geographic_msgs/GeographicMap`: http://ros.org/doc/api/geographic_msgs/html/msg/GeographicMap.html
 .. _`std_msgs/Header`: http://ros.org/doc/api/std_msgs/html/msg/Header.html
 
 """
-
-from __future__ import print_function
 
 PKG = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG)
@@ -60,7 +63,10 @@ from geometry_msgs.msg import Point
 
 class GeoMap():
     """
-    :class:`GeoMap` provides an internal `geographic_msgs/GeographicMap`_ representation.
+    :class:`GeoMap` provides an internal
+    `geographic_msgs/GeographicMap`_ representation.
+
+    :param gmap: `geographic_msgs/GeographicMap`_ message.
     """
 
     def __init__(self, gmap):
@@ -68,8 +74,6 @@ class GeoMap():
 
         Collects relevant information from the geographic map message,
         and provides convenient access to the data.
-
-        :param gmap: `geographic_msgs/GeographicMap`_ message
         """
         self.gmap = gmap
 
@@ -81,39 +85,66 @@ class GeoMap():
             self.feature_ids[feat[fid].id.uuid] = fid
 
     def bounds(self):
-        """ Get `geographic_msgs/GeographicMap`_ message `geographic_msgs/BoundingBox`_ """
+        """
+        :returns: `geographic_msgs/BoundingBox`_ from the `geographic_msgs/GeographicMap`_ message.
+        """
         return self.gmap.bounds
 
     def header(self):
-        """ Get `geographic_msgs/GeographicMap`_ message `std_msgs/Header`_ """
+        """
+        :returns: `std_msgs/Header`_ from the `geographic_msgs/GeographicMap`_ message. 
+        """
         return self.gmap.header
 
 class GeoMapFeatures():
     """
     :class:`GeoMapFeatures` provides a filtering iterator for the
     features in a :class:`osm_cartography.geo_map.GeoMap`.
+
+    :param geomap: :class:`GeoMap` object.
+
+    :class:`GeoMapFeatures` provides these standard container operations:
+
+    .. describe:: len(features)
+
+       :returns: The number of points in the set.
+
+    .. describe:: features[uuid]
+ 
+       :returns: The point with key *uuid*.  Raises a :exc:`KeyError`
+                 if *uuid* is not in the set.
+ 
+    .. describe:: uuid in features
+ 
+       :returns: ``True`` if *features* has a key *uuid*, else ``False``.
+ 
+    .. describe:: uuid not in features
+ 
+       Equivalent to ``not uuid in features``.
+ 
+    .. describe:: iter(features)
+ 
+       :returns: An iterator over all the features.  This is a
+                 shortcut for :meth:`iterkeys`.
+
+       Example::
+
+           gm = GeoMap(msg)
+           gf = GeoMapFeatures(gm)
+           for feat in gf:
+               print str(feat)
     """
 
-    def __init__(self, gmap):
-        """Constructor.
-
-        Collects relevant feature information from the geographic map
-        message, and provides convenient access to the data.
-
-        :param gmap: `geographic_msgs/GeographicMap`_ message 
-        """
-        self.gmap = gmap
+    def __init__(self, geomap):
+        """Constructor. """
+        self.gmap = geomap
 
     def __contains__(self, item):
         """ Feature set membership. """
         return item in self.gmap.feature_ids
 
     def __getitem__(self, key):
-        """ Feature accessor.
-    
-        :returns: Matching Feature.
-        :raises: :exc:`KeyError` if no such feature
-        """
+        """ Feature accessor."""
         index = self.gmap.feature_ids[key]
         return self.gmap.features[index]
 

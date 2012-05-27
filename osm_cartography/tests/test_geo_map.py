@@ -35,6 +35,7 @@ class TestGeoMap(unittest.TestCase):
             self.fail(msg='there are no features in this map')
             i += 1
         self.assertEqual(i, 0)
+        self.assertEqual(len(gf), 0)
         uu = 'da7c242f-2efe-5175-9961-49cc621b80b9'
         with self.assertRaises(KeyError):
             x = gf[uu]
