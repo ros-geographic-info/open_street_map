@@ -43,7 +43,6 @@ import rospy
 
 import sys
 import itertools
-import geodesy.utm
 import geodesy.gen_uuid
 import geodesy.props
 import geodesy.wu_point

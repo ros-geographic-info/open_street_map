@@ -50,12 +50,6 @@ Class for manipulating GeographicMap data.
 
 PKG = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG)
-import rospy
-
-import itertools
-
-import geodesy.utm
-import geodesy.wu_point
 
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import WayPoint

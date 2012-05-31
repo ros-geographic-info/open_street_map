@@ -45,12 +45,10 @@ Generate geographic information maps based on Open Street Map XML data.
 
 from __future__ import print_function
 
-import os
 from xml.etree import ElementTree
 
 PKG_NAME = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG_NAME)
-import rospy
 
 import geodesy.gen_uuid
 
@@ -70,13 +68,13 @@ def get_required_attribute(el, key):
         raise ValueError('required attribute missing: ' + key)
     return val
 
-def makeOsmUniqueID(namespace, id):
-    """Make UniqueID message for *id* number in OSM sub-namespace *namespace*.
+def makeOsmUniqueID(namespace, el_id):
+    """Make UniqueID message for *el_id* number in OSM sub-namespace *namespace*.
 
     :param namespace: OSM sub-namespace
     :type  namespace: string
-    :param id: OSM identifier within that namespace
-    :type  id: int or string containing an integer
+    :param el_id: OSM identifier within that namespace
+    :type  el_id: int or string containing an integer
 
     :returns: corresponding `geographic_msgs/UniqueID`_ message.
     :raises:  :exc:`ValueError`
@@ -84,7 +82,7 @@ def makeOsmUniqueID(namespace, id):
     if not namespace in set(['node', 'way', 'relation']):
         raise ValueError('invalid OSM namespace: ' + namespace)
     ns = 'http://openstreetmap.org/' + namespace + '/'
-    return geodesy.gen_uuid.makeUniqueID(ns, id)
+    return geodesy.gen_uuid.makeUniqueID(ns, el_id)
 
 def get_tag(el):
     """ :returns: `geographic_msgs/KeyValue`_ message for `<tag>` *el* if any, None otherwise. """
@@ -117,7 +115,7 @@ def get_osm(url, bounds):
     else:
         raise ValueError('unsupported URL: ' + url)
 
-    map = GeographicMap(id = geodesy.gen_uuid.makeUniqueID(url))
+    gmap = GeographicMap(id = geodesy.gen_uuid.makeUniqueID(url))
     xm = None
     try:
         f = open(filename, 'r')
@@ -130,19 +128,19 @@ def get_osm(url, bounds):
 
     # get map bounds
     for el in osm.iterfind('bounds'):
-        map.bounds.min_latitude =  float(get_required_attribute(el, 'minlat'))
-        map.bounds.min_longitude = float(get_required_attribute(el, 'minlon'))
-        map.bounds.max_latitude =  float(get_required_attribute(el, 'maxlat'))
-        map.bounds.max_longitude = float(get_required_attribute(el, 'maxlon'))
+        gmap.bounds.min_latitude =  float(get_required_attribute(el, 'minlat'))
+        gmap.bounds.min_longitude = float(get_required_attribute(el, 'minlon'))
+        gmap.bounds.max_latitude =  float(get_required_attribute(el, 'maxlat'))
+        gmap.bounds.max_longitude = float(get_required_attribute(el, 'maxlon'))
 
     # get map way-point nodes
     for el in osm.iterfind('node'):
 
         way = WayPoint()
-        id = el.get('id')
-        if id == None:
+        el_id = el.get('id')
+        if el_id is None:
             raise ValueError('node id missing')
-        way.id = makeOsmUniqueID('node', id)
+        way.id = makeOsmUniqueID('node', el_id)
 
         way.position.latitude = float(get_required_attribute(el, 'lat'))
         way.position.longitude = float(get_required_attribute(el, 'lon'))
@@ -153,16 +151,16 @@ def get_osm(url, bounds):
             if kv != None:
                 way.props.append(kv)
 
-        map.points.append(way)
+        gmap.points.append(way)
 
     # get map paths
     for el in osm.iterfind('way'):
 
         feature = MapFeature()
-        id = el.get('id')
-        if id == None:
+        el_id = el.get('id')
+        if el_id is None:
             raise ValueError('way id missing')
-        feature.id = makeOsmUniqueID('way', id)
+        feature.id = makeOsmUniqueID('way', el_id)
 
         for nd in el.iterfind('nd'):
             way_id = get_required_attribute(nd, 'ref')
@@ -173,16 +171,16 @@ def get_osm(url, bounds):
             if kv != None:
                 feature.props.append(kv)
 
-        map.features.append(feature)
+        gmap.features.append(feature)
 
     # get relations
     for el in osm.iterfind('relation'):
 
         feature = MapFeature()
-        id = el.get('id')
-        if id == None:
+        el_id = el.get('id')
+        if el_id is None:
             raise ValueError('relation id missing')
-        feature.id = makeOsmUniqueID('relation', id)
+        feature.id = makeOsmUniqueID('relation', el_id)
 
         for mbr in el.iterfind('member'):
             mbr_type = get_required_attribute(mbr, 'type')
@@ -197,9 +195,9 @@ def get_osm(url, bounds):
             if kv != None:
                 feature.props.append(kv)
 
-        map.features.append(feature)
+        gmap.features.append(feature)
 
-    return map
+    return gmap
 
 interesting_tags = set(['access',
                         'amenity',

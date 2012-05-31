@@ -44,7 +44,6 @@ Route network path planner.
 
 PKG = 'route_network'
 import roslib; roslib.load_manifest(PKG)
-import rospy
 
 import geodesy.wu_point
 
@@ -139,24 +138,24 @@ class Planner():
         plan.network = req.network
 
         # A* shortest path algorithm
-        open = [[0.0, start_idx]]
+        opened = [[0.0, start_idx]]
         closed = [False for wid in xrange(len(self.points))]
         closed[start_idx] = True
         backpath = [None for wid in xrange(len(self.points))]
         while True:
-            if len(open) == 0:
+            if len(opened) == 0:
                 raise NoPathToGoalError('No path from ' + req.start.uuid
                                         + ' to ' + req.goal.uuid)
-            open.sort()         # :todo: make search more efficient
-            open.reverse()
-            h, e = open.pop()
+            opened.sort()          # :todo: make search more efficient
+            opened.reverse()
+            h, e = opened.pop()
             if e == goal_idx:
                 break
             for edge in self.edges[e]:
                 e2 = edge.end
                 if not closed[e2]:
                     h2 = h + edge.h
-                    open.append([h2, e2])
+                    opened.append([h2, e2])
                     closed[e2] = True
                     backpath[e2] = [e, edge]
 
