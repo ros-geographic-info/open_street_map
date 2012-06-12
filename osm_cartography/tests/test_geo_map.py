@@ -5,10 +5,9 @@ import roslib; roslib.load_manifest(PKG)
 
 import unittest
 
-from geographic_msgs.msg import BoundingBox
 from geographic_msgs.msg import GeographicMap
-#from geometry_msgs.msg import Point
 
+from geodesy import bounding_box
 from osm_cartography.geo_map import *
 from osm_cartography import xml_map
 
@@ -42,7 +41,7 @@ class TestGeoMap(unittest.TestCase):
 
     def test_tiny_map_features(self):
         gm = GeoMap(xml_map.get_osm('package://osm_cartography/tests/tiny.osm',
-                                    BoundingBox()))
+                                    bounding_box.makeEmpty()))
         self.assertEqual(gm.n_features, 2)
 
         # expected feature IDs
