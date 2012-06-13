@@ -47,7 +47,8 @@ import rospy
 
 import sys
 
-from geographic_msgs.msg import BoundingBox
+from geodesy import bounding_box
+
 from geographic_msgs.srv import GetGeographicMap
 
 def client_node(url):
@@ -57,7 +58,7 @@ def client_node(url):
 
     try:
         get_map = rospy.ServiceProxy('get_geographic_map', GetGeographicMap)
-        resp = get_map(url, BoundingBox())
+        resp = get_map(url, bounding_box.makeEmpty())
         if resp.success:
             print(resp.map)
         else:
