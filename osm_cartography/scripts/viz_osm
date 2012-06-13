@@ -131,15 +131,12 @@ class VizNode():
     
         # Convert bounds latitudes and longitudes to UTM (no
         # altitude), convert UTM points to geometry_msgs/Point
-        bounds = self.map.bounds
-        p0 = geodesy.utm.fromLatLong(bounds.min_latitude,
-                                     bounds.min_longitude).toPoint()
-        p1 = geodesy.utm.fromLatLong(bounds.min_latitude,
-                                     bounds.max_longitude).toPoint()
-        p2 = geodesy.utm.fromLatLong(bounds.max_latitude,
-                                     bounds.max_longitude).toPoint()
-        p3 = geodesy.utm.fromLatLong(bounds.max_latitude,
-                                     bounds.min_longitude).toPoint()
+        bbox = self.map.bounds
+        min_lat, min_lon, max_lat, max_lon = bounding_box.getLatLong(bbox)
+        p0 = geodesy.utm.fromLatLong(min_lat, min_lon).toPoint()
+        p1 = geodesy.utm.fromLatLong(min_lat, max_lon).toPoint()
+        p2 = geodesy.utm.fromLatLong(max_lat, max_lon).toPoint()
+        p3 = geodesy.utm.fromLatLong(max_lat, min_lon).toPoint()
     
         # add line strips to bounds marker
         marker.points.append(p0)
