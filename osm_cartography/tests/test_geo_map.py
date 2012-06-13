@@ -41,7 +41,7 @@ class TestGeoMap(unittest.TestCase):
 
     def test_tiny_map_features(self):
         gm = GeoMap(xml_map.get_osm('package://osm_cartography/tests/tiny.osm',
-                                    bounding_box.makeEmpty()))
+                                    bounding_box.makeGlobal()))
         self.assertEqual(gm.n_features, 2)
 
         # expected feature IDs
