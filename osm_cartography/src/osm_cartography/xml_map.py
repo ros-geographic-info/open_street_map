@@ -51,6 +51,7 @@ PKG_NAME = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG_NAME)
 
 import geodesy.gen_uuid
+from geodesy import bounding_box
 
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import KeyValue
@@ -128,10 +129,11 @@ def get_osm(url, bounds):
 
     # get map bounds
     for el in osm.iterfind('bounds'):
-        gmap.bounds.min_latitude =  float(get_required_attribute(el, 'minlat'))
-        gmap.bounds.min_longitude = float(get_required_attribute(el, 'minlon'))
-        gmap.bounds.max_latitude =  float(get_required_attribute(el, 'maxlat'))
-        gmap.bounds.max_longitude = float(get_required_attribute(el, 'maxlon'))
+        minlat = float(get_required_attribute(el, 'minlat'))
+        minlon = float(get_required_attribute(el, 'minlon'))
+        maxlat = float(get_required_attribute(el, 'maxlat'))
+        maxlon = float(get_required_attribute(el, 'maxlon'))
+        gmap.bounds = bounding_box.makeBounds2D(minlat, minlon, maxlat, maxlon)
 
     # get map way-point nodes
     for el in osm.iterfind('node'):
