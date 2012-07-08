@@ -5,6 +5,11 @@ import roslib; roslib.load_manifest(PKG)
 
 import unittest
 
+try:
+    import unique_id
+except ImportError:
+    pass
+
 from geographic_msgs.msg import GeographicMap
 
 from geodesy import bounding_box
@@ -52,7 +57,10 @@ class TestGeoMap(unittest.TestCase):
         gf = GeoMapFeatures(gm)
         i = 0
         for f in gf:
-            self.assertEqual(f.id.uuid, uuids[i])
+            if type(f.id.uuid) == str(): # old-style message?
+                self.assertEqual(f.id.uuid, uuids[i])
+            else:
+                self.assertEqual(unique_id.toString(f.id), uuids[i])
             i += 1
         self.assertEqual(i, 2)
         self.assertEqual(len(gf), 2)

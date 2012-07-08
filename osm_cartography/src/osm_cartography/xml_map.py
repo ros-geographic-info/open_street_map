@@ -56,8 +56,12 @@ from geodesy import bounding_box
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import KeyValue
 from geographic_msgs.msg import MapFeature
-from geographic_msgs.msg import UniqueID
 from geographic_msgs.msg import WayPoint
+
+try:
+    from geographic_msgs.msg import UniqueID
+except ImportError:
+    from uuid_msgs.msg import UniqueID
 
 def get_required_attribute(el, key):
     """ Get attribute key of element *el*.
