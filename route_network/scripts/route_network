@@ -51,8 +51,13 @@ from geodesy import bounding_box
 from geographic_msgs.msg import KeyValue
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RouteSegment
-from geographic_msgs.msg import UniqueID
 from geographic_msgs.srv import GetGeographicMap
+
+try:
+    from geographic_msgs.msg import UniqueID
+except ImportError:
+    from uuid_msgs.msg import UniqueID
+
 
 # dynamic parameter reconfiguration
 from dynamic_reconfigure.server import Server as ReconfigureServer

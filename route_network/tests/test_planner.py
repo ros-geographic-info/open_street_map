@@ -13,11 +13,15 @@ from geographic_msgs.msg import GeoPoint
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RoutePath
 from geographic_msgs.msg import RouteSegment
-from geographic_msgs.msg import UniqueID
 from geographic_msgs.msg import WayPoint
 from geographic_msgs.srv import GetRoutePlanRequest
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
+
+try:
+    from geographic_msgs.msg import UniqueID
+except ImportError:
+    from uuid_msgs.msg import UniqueID
 
 # module to test
 from route_network.planner import *

@@ -38,7 +38,7 @@ Route network path planner.
 .. _`geographic_msgs/GetRoutePlan`: http://ros.org/doc/api/geographic_msgs/html/srv/GetRoutePlan.html
 .. _`geographic_msgs/RouteNetwork`: http://ros.org/doc/api/geographic_msgs/html/msg/RouteNetwork.html
 .. _`geographic_msgs/RoutePath`: http://ros.org/doc/api/geographic_msgs/html/msg/RoutePath.html
-.. _`geographic_msgs/UniqueID`: http://ros.org/doc/api/geographic_msgs/html/msg/UniqueID.html
+.. _`uuid_msgs/UniqueID`: http://ros.org/doc/api/uuid_msgs/html/msg/UniqueID.html
 
 """
 
@@ -65,7 +65,7 @@ class Edge():
     :class:`Edge` stores graph edge data for a way point.
 
     :param end: Index of ending way point.
-    :param seg: `geographic_msgs/UniqueID`_ of corresponding RouteSegment.
+    :param seg: `uuid_msgs/UniqueID`_ of corresponding RouteSegment.
     :param heuristic: Distance heuristic from start to end (must
                       *not* be an over-estimate).
     """

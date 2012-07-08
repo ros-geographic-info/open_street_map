@@ -47,7 +47,6 @@ import geodesy.wu_point
 
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RouteSegment
-from geographic_msgs.msg import UniqueID
 from geographic_msgs.srv import GetRoutePlan
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
@@ -55,6 +54,11 @@ from geometry_msgs.msg import Vector3
 from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
+
+try:
+    from geographic_msgs.msg import UniqueID
+except ImportError:
+    from uuid_msgs.msg import UniqueID
 
 class VizPlanNode():
 
