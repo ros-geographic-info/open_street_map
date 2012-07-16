@@ -60,7 +60,7 @@ class TestGeoMap(unittest.TestCase):
             if type(f.id.uuid) == str(): # old-style message?
                 self.assertEqual(f.id.uuid, uuids[i])
             else:
-                self.assertEqual(unique_id.toString(f.id), uuids[i])
+                self.assertEqual(unique_id.toHexString(f.id), uuids[i])
             i += 1
         self.assertEqual(i, 2)
         self.assertEqual(len(gf), 2)
