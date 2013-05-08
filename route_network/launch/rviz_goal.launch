@@ -1,0 +1,17 @@
+<!-- Launch file for visualizing OSM route networks
+
+     $Id$
+  -->
+
+<launch>
+
+  <!-- route planning node -->
+  <node pkg="route_network" type="plan_route" name="plan_route" />
+
+  <!-- route plan visualization -->
+  <node pkg="route_network" type="rviz_goal" name="rviz_goal" />
+
+  <node pkg="tf" type="static_transform_publisher" name="tf_world"
+        args="0 0 0 0 0 0 1 world map 100" />
+
+</launch>

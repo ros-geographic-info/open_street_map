@@ -50,6 +50,10 @@ from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RoutePath
 from geographic_msgs.srv import GetRoutePlan
 from geographic_msgs.srv import GetRoutePlanResponse
+from geographic_msgs.srv import GetGeoPath
+from geographic_msgs.srv import GetGeoPathResponse
+import geodesy
+
 
 class RoutePlannerNode():
 
@@ -63,6 +67,9 @@ class RoutePlannerNode():
         # advertise route planning service
         self.srv = rospy.Service('get_route_plan', GetRoutePlan,
                                  self.route_planner)
+        # advertise route planning service
+        self.srv_geo = rospy.Service('get_geo_path', GetGeoPath,
+                                     self.path_planner)
         self.resp = None
 
         # subscribe to route network
@@ -102,6 +109,35 @@ class RoutePlannerNode():
             self.resp.success = True
             self.resp.plan.header.stamp = rospy.Time.now()
             self.resp.plan.header.frame_id = self.graph.header.frame_id
+        return self.resp
+
+    def path_planner(self, req):
+        """
+        :param req: GetGeoPathRequest message
+
+        :return: GetGeoPathResponse message
+        """
+        rospy.loginfo('GetGeoPath: ' + str(req))
+        self.resp = GetGeoPathResponse()
+        if self.graph is None:
+            self.resp.success = False
+            self.resp.status = 'no RouteNetwork available for GetGeoPath'
+            rospy.logerr(self.resp.status)
+            return self.resp
+
+        try:
+            # plan a path to the goal
+            self.resp.plan, self.resp.network, self.resp.start_seg, self.resp.goal_seg, self.resp.distance = self.planner.geo_path(req)
+        except (ValueError) as e:
+            self.resp.success = False
+            self.resp.status = str(e)
+            self.resp.network = self.graph.id
+            self.resp.distance = -1
+            rospy.logerr('route planner exception: ' + str(e))
+        else:
+            self.resp.success = not (self.resp.distance == -1)
+            if not self.resp.success:
+              self.resp.status = 'no route found from:\n'  + str(req.start) + ' to:\n' + str(req.goal)
         return self.resp
 
 def main():
