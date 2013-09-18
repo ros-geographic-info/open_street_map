@@ -1,8 +1,6 @@
 <!-- Launch file for visualizing OSM route networks
 
      arg: url = URL for map data
-
-     $Id$
   -->
 
 <launch>

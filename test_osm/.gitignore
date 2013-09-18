@@ -3,4 +3,4 @@
 *.pyc
 cfg/cpp
 docs
-src/route_network
+src/osm_cartography
