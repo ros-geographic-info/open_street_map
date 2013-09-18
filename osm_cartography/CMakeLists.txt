@@ -25,7 +25,8 @@ generate_dynamic_reconfigure_options(cfg/VizOSM.cfg)
 catkin_package(CATKIN_DEPENDS ${_ROS_PKG_DEPS})
 
 install(DIRECTORY scripts/
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts)
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        USE_SOURCE_PERMISSIONS)
 
 # unit tests
 if (CATKIN_ENABLE_TESTING)
