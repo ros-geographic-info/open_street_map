@@ -23,10 +23,8 @@ generate_dynamic_reconfigure_options(cfg/RouteNetwork.cfg)
 
 catkin_package(CATKIN_DEPENDS ${_ROS_PKG_DEPS})
 
-install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 install(DIRECTORY scripts/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts)
 
 # unit tests
 if (CATKIN_ENABLE_TESTING)
