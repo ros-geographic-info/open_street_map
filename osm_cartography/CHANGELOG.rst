@@ -1,8 +1,8 @@
 Change history
 ==============
 
-0.2.0 (forthcoming)
--------------------
+0.2.0 (2013-09-17)
+------------------
 
  * Convert to catkin (`#2`_).
  * Release to Hydro.
