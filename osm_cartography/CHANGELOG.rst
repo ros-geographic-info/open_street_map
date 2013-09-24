@@ -1,6 +1,11 @@
 Change history
 ==============
 
+0.2.1 (forthcoming)
+-------------------
+
+ * Install missing launch scripts (`#2`_). 
+
 0.2.0 (2013-09-18)
 ------------------
 

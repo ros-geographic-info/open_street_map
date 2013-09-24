@@ -15,6 +15,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>roslaunch</build_depend> <!-- only for testing -->
+
   <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>geodesy</build_depend>
   <build_depend>geographic_msgs</build_depend>

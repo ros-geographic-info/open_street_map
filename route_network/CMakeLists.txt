@@ -27,12 +27,16 @@ install(DIRECTORY scripts/
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         USE_SOURCE_PERMISSIONS)
 
+install(DIRECTORY launch/ 
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+
 # unit tests
 if (CATKIN_ENABLE_TESTING)
 
   catkin_add_nosetests(tests/test_planner.py)
 
   # check all the launch files
-  #rosbuild_add_roslaunch_check(launch)
+  find_package(roslaunch REQUIRED)
+  roslaunch_add_file_check(launch)
 
 endif (CATKIN_ENABLE_TESTING)
