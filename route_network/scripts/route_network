@@ -43,7 +43,7 @@ import rospy
 
 import sys
 import itertools
-import geodesy.gen_uuid
+import unique_id
 import geodesy.props
 import geodesy.wu_point
 from geodesy import bounding_box
@@ -85,8 +85,7 @@ def makeGraph(msg):
     :param msg: GeographicMap message.
     :returns: RouteNetwork message.
     """
-    uu = geodesy.gen_uuid.makeUniqueID(PKG_URL + '/map/' + 
-                                       str(msg.id.uuid) + '/routes')
+    uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/map/' + str(msg.id.uuid) + '/routes'))
     return RouteNetwork(header = msg.header, id = uu, bounds = msg.bounds)
 
 def makeSeg(start, end, oneway=False):
@@ -97,8 +96,8 @@ def makeSeg(start, end, oneway=False):
     :param oneway: True if segment is one-way.
     :returns: RouteSegment message.
     """
-    uu = geodesy.gen_uuid.makeUniqueID(PKG_URL + '/'
-                                       + str(start) + '/' + str(end))
+    uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/' + str(start) + '/' + str(end)))
+
     seg = RouteSegment(id = uu, start = start, end = end)
     if oneway:
         seg.props.append(KeyValue(key = 'oneway', value = 'yes'))

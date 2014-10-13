@@ -50,7 +50,7 @@ from xml.etree import ElementTree
 PKG_NAME = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG_NAME)
 
-import geodesy.gen_uuid
+import unique_id
 from geodesy import bounding_box
 
 from geographic_msgs.msg import GeographicMap
@@ -87,7 +87,7 @@ def makeOsmUniqueID(namespace, el_id):
     if not namespace in set(['node', 'way', 'relation']):
         raise ValueError('invalid OSM namespace: ' + namespace)
     ns = 'http://openstreetmap.org/' + namespace + '/'
-    return geodesy.gen_uuid.makeUniqueID(ns, el_id)
+    return unique_id.toMsg(unique_id.fromURL(ns + str(el_id)))
 
 def get_tag(el):
     """ :returns: `geographic_msgs/KeyValue`_ message for `<tag>` *el* if any, None otherwise. """
@@ -120,7 +120,7 @@ def get_osm(url, bounds):
     else:
         raise ValueError('unsupported URL: ' + url)
 
-    gmap = GeographicMap(id = geodesy.gen_uuid.makeUniqueID(url))
+    gmap = GeographicMap(id = unique_id.toMsg(unique_id.fromURL(url)))
     xm = None
     try:
         f = open(filename, 'r')
