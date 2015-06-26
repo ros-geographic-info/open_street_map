@@ -6,7 +6,7 @@ import roslib; roslib.load_manifest(PKG)
 import unittest
 
 import geodesy.props
-import geodesy.gen_uuid
+import unique_id
 import geodesy.wu_point
 
 from geographic_msgs.msg import GeoPoint
@@ -36,8 +36,9 @@ def makeSeg(start, end, oneway=False):
     :param oneway: True if segment is one-way.
     :returns: RouteSegment message.
     """
-    uu = geodesy.gen_uuid.makeUniqueID(PKG_URL + '/'
-                                       + str(start) + '/' + str(end))
+    uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/'
+                                       + str(start) + '/' + str(end)))
+
     seg = RouteSegment(id = uu,
                        start = UniqueID(uuid=start),
                        end = UniqueID(uuid=end))
@@ -133,7 +134,8 @@ def grid_graph(min_lat, min_lon, max_lat, max_lon, step=0.001):
     :param step: Step size [degrees].
     :returns: RouteNetwork message.
     """
-    nid = geodesy.gen_uuid.makeUniqueID(PKG_URL + '/test_network')
+    nid = geodesy.gen_uuid.makeUniqueID(unique_id.fromURL(PKG_URL + '/test_network'))
+
     r = RouteNetwork(id=nid)
     prev_row = None
     for latitude in float_range(min_lat, max_lat, step):
@@ -141,7 +143,7 @@ def grid_graph(min_lat, min_lon, max_lat, max_lon, step=0.001):
         this_row = len(r.points)
         for longitude in float_range(min_lon, max_lon, step):
             fake_url = 'fake://point/' + str(latitude) + '/' + str(longitude)
-            pt_id = geodesy.gen_uuid.generate(fake_url)
+            pt_id = unique_id.fromURL(fake_url)
             r.points.append(makeWayPoint(pt_id, latitude, longitude))
             if prev_col is not None:
                 s = makeSeg(prev_col, pt_id)
