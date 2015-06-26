@@ -22,6 +22,7 @@ catkin_package(CATKIN_DEPENDS
   geographic_msgs
   geometry_msgs
   uuid_msgs
+  std_msgs
   visualization_msgs
 )
 
@@ -29,5 +30,5 @@ catkin_package(CATKIN_DEPENDS
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests/test_geo_map.py)
   catkin_add_nosetests(tests/test_xml_map.py)
-endif
+endif()
 
