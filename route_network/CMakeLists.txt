@@ -1,42 +1,30 @@
-cmake_minimum_required(VERSION 2.8)
+# http://ros.org/doc/groovy/api/catkin/html/user_guide/supposed.html
+cmake_minimum_required(VERSION 2.8.3)
 project(route_network)
+# Load catkin and all dependencies required for this package
+find_package(catkin REQUIRED
+  COMPONENTS
+  dynamic_reconfigure
+  geographic_msgs
+  geometry_msgs
+  unique_id
+  uuid_msgs
+  visualization_msgs
+)
 
-# list catkin dependencies
-set(_ROS_PKG_DEPS
-    dynamic_reconfigure
-    geodesy
-    geographic_msgs
-    geometry_msgs
-    nav_msgs
-    rospy
-    visualization_msgs)
-
-
-# Find catkin macros and libraries, also other catkin packages.
-find_package(catkin REQUIRED COMPONENTS ${_ROS_PKG_DEPS})
-include_directories(include ${catkin_INCLUDE_DIRS})
 catkin_python_setup()
 
-# auto-generate dynamic reconfiguration GUI: before catkin_package()
-# and after catkin_python_setup().
 generate_dynamic_reconfigure_options(cfg/RouteNetwork.cfg)
 
-catkin_package(CATKIN_DEPENDS ${_ROS_PKG_DEPS})
-
-install(DIRECTORY scripts/
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        USE_SOURCE_PERMISSIONS)
-
-install(DIRECTORY launch/ 
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+# what other packages will need to use this one
+catkin_package(CATKIN_DEPENDS
+  geographic_msgs
+  geometry_msgs
+  uuid_msgs
+  visualization_msgs
+)
 
 # unit tests
-if (CATKIN_ENABLE_TESTING)
-
+if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests/test_planner.py)
-
-  # check all the launch files
-  find_package(roslaunch REQUIRED)
-  roslaunch_add_file_check(launch)
-
-endif (CATKIN_ENABLE_TESTING)
+endif()
