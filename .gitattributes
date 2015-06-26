@@ -1,0 +1,7 @@
+*.cc    ident
+*.cpp   ident
+*.h     ident
+*.hh    ident
+*.hpp   ident
+*.msg   ident
+*.py    ident
