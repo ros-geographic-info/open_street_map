@@ -9,6 +9,8 @@ find_package(catkin REQUIRED
   geometry_msgs
   unique_id
   uuid_msgs
+  std_msgs
+  visualization_msgs
 )
 
 catkin_python_setup()
@@ -16,11 +18,16 @@ catkin_python_setup()
 generate_dynamic_reconfigure_options(cfg/VisOSM.cfg)
 
 # what other packages will need to use this one
-catkin_package(
-#    CATKIN-DEPENDS geographic_msgs geometry_msgs unique_id uuid_msgs
+catkin_package(CATKIN_DEPENDS
+  geographic_msgs
+  geometry_msgs
+  uuid_msgs
+  visualization_msgs
 )
 
 # unit tests
-catkin_add_nosetests(tests/test_geo_map.py)
-catkin_add_nosetests(tests/test_xml_map.py)
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(tests/test_geo_map.py)
+  catkin_add_nosetests(tests/test_xml_map.py)
+endif
 
