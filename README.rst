@@ -10,8 +10,8 @@ Overview
   ROS release.  It will not always work with all previous releases.
   Sometimes, it may not work at all.
 
-The current master works with Hydro.  To build for Fuerte or Groovy,
-check out the rosbuild branch instead of master.
+The current master works with Hydro and Indigo.  To build for Fuerte
+or Groovy, check out the rosbuild branch instead of master.
 
 .. _`Open Street Map`: http://openstreetmap.org
 .. _`Open_street_map`: http://www.ros.org/wiki/open_street_map

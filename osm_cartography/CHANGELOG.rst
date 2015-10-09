@@ -1,6 +1,13 @@
 Change history
 ==============
 
+forthcoming
+-----------
+
+ * Add publisher ``queue_size`` for Indigo (`#3`_).
+ * Remove references to deprecated ``geodesy.gen_uuid`` module.
+ * Release to Indigo.
+
 0.2.1 (2013-09-24)
 ------------------
 
@@ -19,3 +26,4 @@ Change history
    robuild.
 
 .. _`#2`: https://github.com/ros-geographic-info/open_street_map/issues/2
+.. _`#3`: https://github.com/ros-geographic-info/open_street_map/issues/3
