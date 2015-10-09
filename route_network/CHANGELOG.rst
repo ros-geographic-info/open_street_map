@@ -1,8 +1,8 @@
 Change history
 ==============
 
-forthcoming
------------
+0.2.2 (2015-10-08)
+------------------
 
  * Add publisher ``queue_size`` for Indigo (`#3`_).
  * Remove references to deprecated ``geodesy.gen_uuid`` module.
