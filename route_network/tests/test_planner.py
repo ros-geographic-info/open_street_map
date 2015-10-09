@@ -134,7 +134,7 @@ def grid_graph(min_lat, min_lon, max_lat, max_lon, step=0.001):
     :param step: Step size [degrees].
     :returns: RouteNetwork message.
     """
-    nid = geodesy.gen_uuid.makeUniqueID(unique_id.fromURL(PKG_URL + '/test_network'))
+    nid = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/test_network'))
 
     r = RouteNetwork(id=nid)
     prev_row = None
@@ -276,7 +276,7 @@ class TestPlanner(unittest.TestCase):
                          '2df38f2c-202b-5ba5-be73-c6498cb4aafe')
         self.assertEqual(path.segments[1].uuid,
                          '8f2c2df3-be73-5ba5-202b-cb4aafec6498')
-        
+
     def test_2x2_grid(self):
         # generate a fully-connected 2x2 grid
         g = grid_graph(0.0, 0.0, 0.002, 0.002)
