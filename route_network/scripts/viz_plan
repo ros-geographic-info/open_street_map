@@ -70,7 +70,7 @@ class VizPlanNode():
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker_array',
-                                   MarkerArray, latch=True)
+                                   MarkerArray, latch=True, queue_size=10)
 
         rospy.wait_for_service('get_geographic_map')
         self.get_plan = rospy.ServiceProxy('get_route_plan', GetRoutePlan)

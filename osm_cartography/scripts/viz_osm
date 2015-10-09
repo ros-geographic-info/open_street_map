@@ -74,7 +74,7 @@ class VizNode():
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker_array',
-                                   MarkerArray, latch=True)
+                                   MarkerArray, latch=True, queue_size=10)
         self.map = None
         self.msg = None
         rospy.wait_for_service('get_geographic_map')

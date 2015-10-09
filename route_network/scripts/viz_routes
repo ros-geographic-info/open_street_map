@@ -66,7 +66,7 @@ class RouteVizNode():
 
         # advertise visualization marker topic
         self.pub = rospy.Publisher('visualization_marker_array',
-                                   MarkerArray, latch=True)
+                                   MarkerArray, latch=True, queue_size=10)
 
         # refresh the markers every three seconds, making them last four.
         self.timer_interval = rospy.Duration(3)

@@ -30,8 +30,6 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#
-# Revision $Id$
 
 """
 Create route network messages for geographic information maps.
@@ -85,7 +83,8 @@ def makeGraph(msg):
     :param msg: GeographicMap message.
     :returns: RouteNetwork message.
     """
-    uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/map/' + str(msg.id.uuid) + '/routes'))
+    uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/map/' +
+                                           str(msg.id.uuid) + '/routes'))
     return RouteNetwork(header = msg.header, id = uu, bounds = msg.bounds)
 
 def makeSeg(start, end, oneway=False):
@@ -96,7 +95,8 @@ def makeSeg(start, end, oneway=False):
     :param oneway: True if segment is one-way.
     :returns: RouteSegment message.
     """
-    uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/' + str(start) + '/' + str(end)))
+    uu = unique_id.toMsg(unique_id.fromURL(PKG_URL + '/' +
+                                           str(start) + '/' + str(end)))
 
     seg = RouteSegment(id = uu, start = start, end = end)
     if oneway:
@@ -112,8 +112,8 @@ class RouteNetNode():
         self.config = None
 
         # advertise visualization marker topic
-        self.pub = rospy.Publisher('route_network',
-                                   RouteNetwork, latch=True)
+        self.pub = rospy.Publisher('route_network', RouteNetwork,
+                                   latch=True, queue_size=10)
         self.graph = None
         rospy.wait_for_service('get_geographic_map')
         self.get_map = rospy.ServiceProxy('get_geographic_map',
@@ -145,7 +145,7 @@ class RouteNetNode():
                         if not oneway:
                             self.graph.segments.append(makeSeg(end, start))
                     start = end
-    
+
     def reconfigure(self, config, level):
         """Dynamic reconfigure callback.
 
@@ -175,7 +175,8 @@ class RouteNetNode():
                              + str(resp.status))
 
         return self.config
-    
+
+
 def main():
     node_class = RouteNetNode()
     try:
