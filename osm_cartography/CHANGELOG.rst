@@ -7,6 +7,7 @@ forthcoming
  * Add publisher ``queue_size`` for Indigo (`#3`_).
  * Remove references to deprecated ``geodesy.gen_uuid`` module.
  * Release to Indigo.
+ * Contributors: Augusto Luis Ballardini, Jack O'Quin
 
 0.2.1 (2013-09-24)
 ------------------
