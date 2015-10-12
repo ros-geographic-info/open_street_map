@@ -1,6 +1,12 @@
 Change history
 ==============
 
+0.2.3 (2015-10-12)
+------------------
+
+ * move static transform from viz_osm.launch to
+   tests/test_viz_osm.launch (`#5`_)
+
 0.2.2 (2015-10-08)
 ------------------
 
@@ -28,3 +34,4 @@ Change history
 
 .. _`#2`: https://github.com/ros-geographic-info/open_street_map/issues/2
 .. _`#3`: https://github.com/ros-geographic-info/open_street_map/issues/3
+.. _`#5`: https://github.com/ros-geographic-info/open_street_map/issues/5
