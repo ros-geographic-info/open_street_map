@@ -1,0 +1,36 @@
+<!-- Launch file for visualizing OSM data
+
+     arg: url = URL for map data
+
+     $Id$
+  -->
+
+<launch>
+
+  <arg name="url" default="package://osm_cartography/maps/fkie.osm" />
+
+  <!-- start map server -->
+  <node pkg="osm_cartography" type="osm_server" name="osm_server" output="screen" />
+
+  <!-- start map visualization -->
+  <node pkg="osm_cartography" type="viz_osm" name="viz_osm" >
+    <param name="map_url" value="$(arg url)" />
+  </node>
+  
+  <node pkg="route_network" type="route_network" name="route_network" >
+      <param name="map_url" value="$(arg url)" />
+  </node>
+  
+  <node pkg="route_network" type="plan_route" name="plan_route" />
+
+  <node pkg="route_network" type="rviz_goal" name="rviz_goal" />
+
+  <node pkg="tf" type="static_transform_publisher" name="tf_world_map" args="0 0 0 0 0 0 1 /world /map 100" >
+    <param name="capability_group" value="0 tf"/>
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="tf_map_local_map" args="367665.967 5608794.2845 0 0 0 0 1 /map /local_map 100" >
+    <param name="capability_group" value="0 tf"/>
+  </node>
+
+</launch>
