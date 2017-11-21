@@ -181,13 +181,18 @@ class Planner():
         return plan
 
     def geo_path(self, req):
-        '''
-        Plan the route from start to destination geopoint.
-        The nearest segment of the OSM map will be automatically detected.
-        :param req: `geographic_msgs/GetGeoPath` _ request message
-        :return: tuple of geographic_msgs/GeoPoint[], `uuid_msgs/UniqueID`_ of used route network, `uuid_msgs/UniqueID`_ of start segment, `uuid_msgs/UniqueID`_ of end segment, distance. Set distance to -1, if no route was found.
+        """ Plan the shortest path between a start and a destination geopoint.
+
+        Unlike the 'planner' method, the 'geo_path' method can receive GeoPoints out of the graph, upon such a case, the nearest segments on the OSM map are detected,
+        and the planning is carried out.
+        
+        :pram req: The request message.
+        :param req: geographic_msgs/GetGeoPath
+
+        :return: The computed path, as well as the ids of the RouteNetwork and the start and end segments, plus the length of the path. The length is set to -1 in case of failure.
+        :rtype: (geographic_msgs/GeoPoint[], uuid_msgs/UniqueID, uuid_msgs/UniqueID, uuid_msgs/UniqueID, length) 
         :raises: :exc:`ValueError` if invalid request.
-        '''
+        """
         # check for possible errors in request
         if math.isnan(req.start.latitude) or math.isnan(req.start.longitude):
             raise ValueError('Nan in starting point: ' + str(req.start))
@@ -264,14 +269,22 @@ class Planner():
         return result, self.graph.id, start_seg.id, goal_seg.id, dist
 
     def _planner_seg(self, start_geo_point, start_seg, goal_geo_point, goal_seg):
-        """ Plan route from start to goal.
-        :param start_geo_point: `geographic_msgs/GeoPoint`
-        :param start_seg: `geographic_msgs/RouteSegment`, the nearest segment to the point.
-        :param goal_geo_point: `geographic_msgs/GeoPoint`
-        :param goal_seg: `geographic_msgs/RouteSegment`, the nearest segment to the point.
-        :returns: a tuple of `geographic_msgs/RoutePath`_ message and distance
-        :raises: :exc:`ValueError` if invalid request.
-        :raises: :exc:`NoPathToGoalError` if goal not reachable.
+        """ Plan route from start to goal. The actual search algorithm to find a path is executed here.
+        
+        :param start_geo_point: The start position.
+        :type start_geo_point: geographic_msgs/GeoPoint
+        :param start_seg: The nearest segment to the point.
+        :type start_seg: geographic_msgs/RouteSegment
+        :param: goal_geo_point: The goal position.
+        :type goal_geo_point: geographic_msgs/GeoPoint
+        :param goal_seg: The nearest segment to the point.
+        :type goal_seg: geographic_msgs/RouteSegment
+ 
+        :return: The planned path between start and goal, and its length.
+        :rtype: (geographic_msgs/RoutePath, float)
+
+        :raises: :exc: ValueError if invalid request.
+        :raises: :exc: NoPathToGoalError if goal not reachable.
         """
         # validate request parameters
         start__seg_start_idx = self.points.index(start_seg.start.uuid)
@@ -356,15 +369,21 @@ class Planner():
         return plan, dist
 
     def _get_min_point(self, seg, lot):
-        '''
-        :param seg: The segment
+        """ Chooses between the orthogonal projection, and the start and end points
+            of the segment.
+
+        If the given orthogonal projection lies out of the segment, the whether the start
+        or end point of the segment must be chosen as the minimum point.
+
+        :param seg: The segment.
         :type seg: geographic_msgs/RouteSegment
-        :param lot: The perpendicular point to the segment
+        :param lot: The perpendicular point to the segment.
         :type lot: geodesy.utm.UTMPoint
+
         :return: The perpendicular point if it is on the segment, else the start or end
                  point of the segment.
         :rtype: geodesy.utm.UTMPoint
-        '''
+        """
         utm_seg_start = self.utm_points[self.points.index(seg.start.uuid)]
         utm_seg_end = self.utm_points[self.points.index(seg.end.uuid)]
         length_seg = self.distance2D(utm_seg_start, utm_seg_end)
@@ -378,25 +397,31 @@ class Planner():
             return utm_seg_end
 
     def _getSegment(self, uuid):
-        '''
-        :param uuid: the id of the segment
-        :return: segment for given uuid.
-        :rtype: geographic_msgs/RouteSegment or ``None``
-        '''
+        """ Get the segment that corresponds to the given ID.
+
+        :param uuid: The id of the segment.
+        :type uuid: uuid_msgs/UniqueID
+
+        :return: The segment for the given uuid.
+        :rtype: geographic_msgs/RouteSegment if the segment is found, None otherwise.
+        """
         for seg in self.graph.segments:
             if seg.id == uuid:
                 return seg
         return None
 
     def _getSegmentLength(self, start_point_id, seg_id):
-        '''
-        Searches the segment with given id with given start point in a pre-cached list
-        and return his length.
-        :param start_point_id: the id of start point of the segment
-        :param seg_id: the id of the segment
-        :return: length of a segment.
-        :rtype: float or ``None``
-        '''
+        """ Searches the segment with given id with given start point in a pre-cached list
+            and return its length.
+
+        :param start_point_id: The id of start point of the segment.
+        :type start_point_id: uuid_msgs/UniqueID
+        :param seg_id: The id of the segment.
+        :type seg_id: uuid_msgs/UniqueID
+
+        :return: Length of a segment.
+        :rtype: float if the segment is found, None otherwise.
+        """
         edges = self.edges[self.points.index(start_point_id.uuid)]
         for edge in edges:
             if edge.seg == seg_id:
@@ -404,18 +429,19 @@ class Planner():
         return None
 
     def getNearestSegment(self, geo_point, max_dist=500.):
-        '''
-        Determine the nearest segment to the given point.
-        :param geo_point: the position
+        """ Determine the nearest segment to the given point.
+
+        :param geo_point: The position.
         :type geo_point:  geographic_msgs/GeoPoint
-        :param max_dist: the maximal distance to segment
+        :param max_dist: The maximal allowed distance to segment.
         :type max_dist: float
+
         :return: A tuple of the nearest segment, which has the minimum distance to
                  given point, the distance to the segment and the perpendicular point.
         :rtype: (geographic_msgs/RouteSegment, float, geodesy.utm.UTMPoint) or
-                ``(None, None, None)``, if the distance of given point to start or
-                end of the segment is greater then ``max_dist``
-        '''
+                (None, None, None), if the distance of given point to start or
+                end of the segment is greater then max_dist
+        """
         utm_point = geodesy.utm.fromMsg(geo_point)
         min_dist = 999999999
         result = (None, None, None)
@@ -447,13 +473,18 @@ class Planner():
         return result
 
     def getPerpendicularPoint2D(self, utm_start, utm_end, utm_p):
-        '''
-        Determine the perpendicular point to the line defined by ``utm_start`` and ``utm_end``, from
-        the point ``utm_p``.
-        :return: the cut point or None on error
+        """ Returns the orthongal projection of point utm_p onto a line segment (utm_start -> utm_end)
+
+        :param utm_start: The starting point of the line segment.
+        :type utm_start: geodesy.utm.UTMPoint
+        :param utm_end: The ending point of the line segment.
+        :type utm_end: geodesy.utm.UTMPoint
+        :param utm_p: The point.
+        :type utm_p: geodesy.utm.UTMPoint
+
+        :return: The orthogonal projection (cut point) if no errors, None otherwise.
         :rtype: geodesy.utm.UTMPoint
-        :note: currently only 2D
-        '''
+        """
         s = numpy.array([utm_start.easting, utm_start.northing])
         e = numpy.array([utm_end.easting, utm_end.northing])
         p = numpy.array([utm_p.easting, utm_p.northing])
@@ -471,12 +502,16 @@ class Planner():
 
     @staticmethod
     def distance2D(utm1, utm2):
-        ''' Compute 2D Euclidean distance between two utm points.
-        :aram utm1: Index of first point.
-        :param utm2: Index of second point.
-        :return: Distance in meters within the UTM XY
-                 plane. Altitudes are ignored.
-        '''
+        """ Compute 2D Euclidean distance between two utm points.
+
+        :param utm1: The first point.
+        :type utm1: geodesy.utm.UTMPoint
+        :param utm2: The second point.
+        :type utm2: geodey.utm.UTMPoint
+
+        :return: Distance in meters within the UTM XY plane. Altitudes are ignored.
+        :rtype: float64
+        """
         dx = utm2.easting - utm1.easting
         dy = utm2.northing - utm1.northing
         return numpy.sqrt(dx*dx + dy*dy)

@@ -114,6 +114,16 @@ class RoutePlannerNode():
         return self.resp
 
     def geo_path_planner(self, req):
+        """ Processes the planning request.
+
+        If the planning service fails, self.resp.success is set to False.
+
+        :param req: The planning request (start and goal positions).
+        :type req: geographic_msgs/GetGeoPath
+
+        :return: The plan from start to goal position.
+        :rtype: geographic_msgs/GetGeoPathResponse 
+        """
         rospy.loginfo('GetGeoPath: ' + str(req))
         self._calc_idx += 1
         self.resp = GetGeoPathResponse()

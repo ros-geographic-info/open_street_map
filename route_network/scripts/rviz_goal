@@ -71,36 +71,33 @@ class RvizGoalListener():
         self.graph = None
         rospy.loginfo("Waiting for 'get_geo_path' service...")
         rospy.wait_for_service('get_geo_path')
-        self.get_geo_path = rospy.ServiceProxy('get_geo_path',
-                                              GetGeoPath)
-        # advertise visualization marker topic
-        self.viz_pub = rospy.Publisher('visualization_marker_array',
-                                   MarkerArray, latch=True)
+        self.get_geo_path = rospy.ServiceProxy('get_geo_path', GetGeoPath)
 
-        # subscribe to sat fix
-        self._sub_fix = rospy.Subscriber('fix', NavSatFix,
-                                        self.gps_fix_callback)
+        # Advertise visualization marker topic (display the map on RVIZ)
+        self.viz_pub = rospy.Publisher('visualization_marker_array', MarkerArray, latch=True)
+
+        # Subscribe to sat fix
+        self._sub_fix = rospy.Subscriber('fix', NavSatFix, self.gps_fix_callback)
         
-        self._sub_init = rospy.Subscriber('initialpose', PoseWithCovarianceStamped,
-                                          self.initpose_callback)
-        # subscribe to goal
-        self._sub_goal = rospy.Subscriber('goal', PoseStamped,
-                                          self.goal_callback)
+        # Subscribe to initialpose: Listen for starting position to plan a route.
+        self._sub_init = rospy.Subscriber('initialpose', PoseWithCovarianceStamped, self.initpose_callback)
+
+        # Subscribe to goal: Listen for goal position to plan a route.
+        self._sub_goal = rospy.Subscriber('goal', PoseStamped, self.goal_callback)
 
         self._own_geo_point = None
         self._own_utmpoint = None
         self.listener = tf.TransformListener()
         self.gridZone = None
-          # subscribe to route network
-        self._sub_route = rospy.Subscriber('route_network', RouteNetwork,
-                                          self.graph_callback)
+
+        # Subscribe to route network (Graph on which the planning is carried out).
+        self._sub_route = rospy.Subscriber('route_network', RouteNetwork, self.graph_callback)
 
     def graph_callback(self, graph):
-        """
-        Handle RouteNetwork message.
-        :param graph: RouteNetwork message.
-        :post: self.graph = RouteNetwork message
-        :post: self.points = visualization markers message.
+        """ Callback to initialize to graph to plan on.
+
+        :param graph: The required graph. 
+        :type graph: geographic_msgs/RouteNetwork
         """
         if len(graph.points) > 0:
             graph.points[0].position
@@ -113,13 +110,13 @@ class RvizGoalListener():
             self.graph = graph
 
     def initpose_callback(self, msg):
-        '''
-        Handle the init position message from rviz.
+        """ Callback to aquire the initial position from RVIZ.
         
-        :param msg: PoseWithCovarianceStamped message
-        '''
+        :param msg: The initial position.
+        :type msg: geometry_msgs/PoseWithCovarianceStamped
+        """
         with self._lock:
-            print "Init pose received"
+            rospy.loginfo("Init pose received.")
             if not self.gridZone is None:
                 (map_trans, map_rot) = self.listener.lookupTransform(msg.header.frame_id, "/world", rospy.Time(0))
                 self._own_utmpoint = geodesy.utm.UTMPoint(easting=msg.pose.pose.position.x-map_trans[0], 
@@ -129,31 +126,28 @@ class RvizGoalListener():
                                                 band=self.gridZone[1])
                 self._own_geo_point = self._own_utmpoint.toMsg()
             else:
-                print "Unknown UMT grid zone!"
+                rospy.logerr("Unknown UMT grid zone!")
     
     def gps_fix_callback(self, msg):
-        '''
-        Handle the gps fix message from robot.
-        
-        :param msg: PoseWithCovarianceStamped message
-        '''
+        """ Callback to acquire the GPS Fix message from a robot.
+
+        :param msg: The GPS position.
+        :type msg: geometry_msgs/PoseWithCovarianceStamped
+        """
         with self._lock:
             self._own_utmpoint = geodesy.utm.fromLatLong(msg.latitude, msg.longitude, msg.altitude)
             self._own_geo_point = GeoPoint(msg.latitude, msg.longitude, msg.altitude) 
 
     def goal_callback(self, msg):
-        '''
-        Handle the received goal position. Calculates the plan only if the start position is initialized.
+        """ Callback to acquire the goal position, and calculate the plan towards it.
         
-        :param msg: PoseStamped message
-        '''
-        print "Goal callback!"
+        :param msg: The goal position.
+        :type msg: geometry_msgs/PoseStamped
+        """
         with self._lock:
-            print "goal reaceived"
+            rospy.loginfo("Goal pose received.")
             if not self._own_geo_point is None:
                 try:
-                    print "Entered Goal Try"
-            #        listener.waitForTransform("/world", "/map", now, rospy.Duration(4.0))
                     (map_trans, map_rot) = self.listener.lookupTransform(msg.header.frame_id, "/world", rospy.Time(0))
                     gridZone = self._own_utmpoint.gridZone()
                     goal_utm = geodesy.utm.UTMPoint(easting=msg.pose.position.x-map_trans[0], 
@@ -162,12 +156,7 @@ class RvizGoalListener():
                                                     zone=gridZone[0], 
                                                     band=gridZone[1])
                     geo_goal = goal_utm.toMsg()
-                    print "GeoGoal computed", geo_goal
                     path_plan = self.get_geo_path(self._own_geo_point, geo_goal)
-                    print "Path computed!"
-                    print "Start:", self._own_geo_point
-                    print "Goal:", geo_goal
-                    print "PLAN", path_plan
                     self._pub_viz_path(path_plan.plan.points, self._own_geo_point, geo_goal, path_plan.plan.start_seg, path_plan.plan.goal_seg, path_plan.plan.distance)
                 except (tf.Exception, tf.LookupException, tf.ConnectivityException):
                     import traceback
@@ -176,16 +165,20 @@ class RvizGoalListener():
                 print "no init pose"
 
     def _pub_viz_path(self, path, start, goal, start_seg, end_seg, distance):
-        """Publish visualization markers for a RoutePath.
-        :param path: geographic_msgs/GeoPoint[]
-        :param start: geographic_msgs/GeoPoint
-        :param goal: geographic_msgs/GeoPoint
-        
-        :param start_seg: `uuid_msgs/UniqueID`_ of the nearest segment to the starting way point
-        
-        :param end_seg: `uuid_msgs/UniqueID`_ of the nearest segment to the goal way point
-        
-        :param distance: float64 length of the route
+        """ Publish visualization markers for a RoutePath.
+
+        :param path: The planned path to be visualized.
+        :type path: geographic_msgs/GeoPoint[]
+        :param start: The start position.
+        :type start: geographic_msgs/GeoPoint
+        :param goal: The goal position.
+        :type goal: geographic_msgs/GeoPoint
+        :param start_seg: The ID of the nearest graph-segment to the starting way point.
+        :type start_seg: uuid_msgs/UniqueID
+        :param end_seg: The ID of the nearest segment to the goal way point.
+        :type end_seg: uuid_msgs/UniqueID
+        :param distance: Length of the planned route.
+        :type distance: float64
         """
         if self.viz_pub.get_num_connections() > 0 and not self.graph is None:
             life_time = rospy.Duration(120)
