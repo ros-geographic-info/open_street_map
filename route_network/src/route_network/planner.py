@@ -326,7 +326,7 @@ class Planner():
         while True:
             if len(opened) == 0:
                 raise NoPathToGoalError('No path from ' + str(start_geo_point) + ' to ' + str(goal_geo_point))
-            opened.sort()   
+            opened.sort()
             h, e = opened.pop(0)
             if ((e == goal__seg_start_idx and goal__seg_start_idx != start__seg_start_idx) or (e == goal__seg_end_idx and goal__seg_end_idx != start__seg_start_idx)):
                 reached_goal = e
