@@ -157,7 +157,7 @@ class RvizGoalListener():
                                                     band=gridZone[1])
                     geo_goal = goal_utm.toMsg()
                     path_plan = self.get_geo_path(self._own_geo_point, geo_goal)
-                    self._pub_viz_path(path_plan.plan.points, self._own_geo_point, geo_goal, path_plan.plan.start_seg, path_plan.plan.goal_seg, path_plan.plan.distance)
+                    self._pub_viz_path([pose.pose.position for pose in path_plan.plan.poses], self._own_geo_point, geo_goal, path_plan.start_seg, path_plan.goal_seg, path_plan.distance)
                 except (tf.Exception, tf.LookupException, tf.ConnectivityException):
                     import traceback
                     print traceback.format_exc()

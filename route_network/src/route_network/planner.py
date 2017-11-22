@@ -111,6 +111,7 @@ class Planner():
                     dist = self.points.distance2D(index, n)
                     self.edges[index].append(Edge(n, seg.id,
                                                   heuristic=dist))
+
         # Create a list with utm point for each point
         self.utm_points = dict()
         for p in self.points:
@@ -195,9 +196,9 @@ class Planner():
         """
         # check for possible errors in request
         if math.isnan(req.start.latitude) or math.isnan(req.start.longitude):
-            raise ValueError('Nan in starting point: ' + str(req.start))
+            raise ValueError('NaN in starting point: ' + str(req.start))
         if math.isnan(req.goal.latitude) or math.isnan(req.goal.longitude):
-            raise ValueError('Nan in starting point: ' + str(req.start))
+            raise ValueError('NaN in starting point: ' + str(req.start))
         if math.isnan(req.start.altitude):
             req.start.altitude = 0.0
         if math.isnan(req.goal.altitude):
@@ -324,11 +325,9 @@ class Planner():
         reached_goal = None
         while True:
             if len(opened) == 0:
-                raise NoPathToGoalError('No path from ' + str(start_geo_point)
-                                      + ' to ' + str(goal_geo_point))
-            opened.sort()          # :todo: make search more efficient
-            opened.reverse()
-            h, e = opened.pop()
+                raise NoPathToGoalError('No path from ' + str(start_geo_point) + ' to ' + str(goal_geo_point))
+            opened.sort()   
+            h, e = opened.pop(0)
             if ((e == goal__seg_start_idx and goal__seg_start_idx != start__seg_start_idx) or (e == goal__seg_end_idx and goal__seg_end_idx != start__seg_start_idx)):
                 reached_goal = e
                 break
@@ -359,13 +358,13 @@ class Planner():
             while backpath[e] is not None:
                 plan.segments.append(backpath[e][1].seg)
                 e = backpath[e][0]
-                # todo sometimeswe we have an MemoryError
+                # :TODO: sometimeswe we have an MemoryError
         except:
             print "Error, count of segments: ", len(plan.segments)
             raise
         assert(e == start__seg_start_idx or e == start__seg_end_idx)
         plan.segments.reverse()
-#        print "Distance", dist
+
         return plan, dist
 
     def _get_min_point(self, seg, lot):
