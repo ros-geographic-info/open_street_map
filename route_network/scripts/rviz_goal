@@ -74,7 +74,7 @@ class RvizGoalListener():
         self.get_geo_path = rospy.ServiceProxy('get_geo_path', GetGeoPath)
 
         # Advertise visualization marker topic (display the map on RVIZ)
-        self.viz_pub = rospy.Publisher('visualization_marker_array', MarkerArray, latch=True)
+        self.viz_pub = rospy.Publisher('visualization_marker_array', MarkerArray, latch=True, queue_size=1)
 
         # Subscribe to sat fix
         self._sub_fix = rospy.Subscriber('fix', NavSatFix, self.gps_fix_callback)
