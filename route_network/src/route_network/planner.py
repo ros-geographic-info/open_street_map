@@ -42,9 +42,6 @@ Route network path planner.
 
 """
 
-PKG = 'route_network'
-import roslib; roslib.load_manifest(PKG)
-
 import numpy
 import math
 import geodesy.utm
