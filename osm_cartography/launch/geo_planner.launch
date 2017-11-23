@@ -2,19 +2,19 @@
 
 <launch>
   <!-- The URL to the OSM file -->
-  <arg name="url" default="package://osm_cartography/maps/ixtapa.osm" />
+  <arg name="map_url" default="package://osm_cartography/maps/ixtapa.osm" />
 
   <!-- Start map server -->
   <node pkg="osm_cartography" type="osm_server" name="osm_server" output="screen" />
 
   <!-- Start map visualization -->
   <node pkg="osm_cartography" type="viz_osm" name="viz_osm" >
-    <param name="map_url" value="$(arg url)" />
+    <param name="map_url" value="$(arg map_url)" />
   </node>
   
   <!-- Build a graph out of the OSM information -->
   <node pkg="route_network" type="route_network" name="route_network" >
-      <param name="map_url" value="$(arg url)" />
+      <param name="map_url" value="$(arg map_url)" />
   </node>
   
   <!-- Provide the planning service -->
