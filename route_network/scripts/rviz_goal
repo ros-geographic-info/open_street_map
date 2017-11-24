@@ -32,8 +32,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-PKG_NAME = 'route_network'
-import roslib; roslib.load_manifest(PKG_NAME)
 import math
 import sys
 import threading
