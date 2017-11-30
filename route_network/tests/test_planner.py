@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 PKG='route_network'
-import roslib; roslib.load_manifest(PKG)
 
 import unittest
 
