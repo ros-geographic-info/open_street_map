@@ -32,11 +32,11 @@ install(DIRECTORY launch/
 
 # unit tests
 if (CATKIN_ENABLE_TESTING)
+  
+  find_package(catkin REQUIRED rostest roslaunch)
 
-  catkin_add_nosetests(tests/test_planner.py)
+  add_rostest(tests/planner.test)
 
-  # check all the launch files
-  find_package(roslaunch REQUIRED)
   roslaunch_add_file_check(launch)
 
 endif (CATKIN_ENABLE_TESTING)
