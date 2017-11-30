@@ -1,4 +1,4 @@
-<package>
+<package format="2">
 
   <name>test_osm</name>
   <version>0.2.3</version>
@@ -17,18 +17,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>osm_cartography</build_depend>
-  <build_depend>route_network</build_depend>
-  <build_depend>geodesy</build_depend>
-  <build_depend>geographic_msgs</build_depend>
-
-  <!-- this should be a test_depend -->
-  <build_depend>rostest</build_depend>
-
-  <run_depend>osm_cartography</run_depend>
-  <run_depend>route_network</run_depend>
-  <run_depend>geodesy</run_depend>
-  <run_depend>geographic_msgs</run_depend>
+  <depend>osm_cartography</depend>
+  <depend>route_network</depend>
+  <depend>geodesy</depend>
+  <depend>geographic_msgs</depend>
 
 </package>
 
