@@ -27,7 +27,7 @@ except ImportError:
 from route_network.planner import *
 
 # :todo: place this in a module...
-PKG_URL = 'http://ros.org/wiki/' + PKG
+PKG_URL = 'http://wiki.ros.org/' + PKG
 def makeSeg(start, end, oneway=False):
     """ Make RouteSegment message.
 
