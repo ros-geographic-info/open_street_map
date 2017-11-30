@@ -1,4 +1,4 @@
-<package>
+<package format="2">
 
   <name>osm_cartography</name>
   <version>0.2.3</version>
@@ -15,25 +15,19 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roslaunch</build_depend> <!-- only for testing -->
+  <depend>dynamic_reconfigure</depend>
+  <depend>geodesy</depend>
+  <depend>geographic_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rospy</depend>
+  <depend>tf</depend>
+  <depend>std_msgs</depend>
+  <depend>visualization_msgs</depend>
 
-  <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>geodesy</build_depend>
-  <build_depend>geographic_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>visualization_msgs</build_depend>
+  <exec_depend>route_network</exec_depend>
+  <exec_depend>rviz</exec_depend>
 
-  <run_depend>dynamic_reconfigure</run_depend>
-  <run_depend>geodesy</run_depend>
-  <run_depend>geographic_msgs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>visualization_msgs</run_depend>
+  <test_depend>roslaunch</test_depend>
 
   <export>
     <rosdoc config="rosdoc.yaml" />
