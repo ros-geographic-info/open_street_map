@@ -1,6 +1,11 @@
 Change history
 ==============
 
+Forthcoming
+-----------
+* Convert to package xml format 2, add rostest dependency
+* Contributors: Bence Magyar
+
 0.2.3 (2015-10-12)
 ------------------
 

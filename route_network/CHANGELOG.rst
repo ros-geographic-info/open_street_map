@@ -1,6 +1,16 @@
 Change history
 ==============
 
+Forthcoming
+-----------
+* Convert to package xml format 2 and add launch file dependencies
+* Create new launch file to start all the needed nodes to plan on a map.
+* Update to use the original version of the GeoPath msg and the new version of the GetGeoPath srv.
+* Complete function documentation/comments for the new features.
+* Add an RVIZ interface to plan and directly select start and goal positions by clicking on the map.
+* Add the possibility to plan from and to geographic points that are not nodes of the graph, but rather lie nearby.
+* Contributors: Bence Magyar, Diego Ramos
+
 0.2.3 (2015-10-12)
 ------------------
 
