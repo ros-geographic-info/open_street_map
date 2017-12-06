@@ -1,8 +1,8 @@
 Change history
 ==============
 
-Forthcoming
------------
+0.2.4 (2017-12-06)
+------------------
 * Convert to package xml format 2 and add launch file dependencies
 * Possibility to compute paths between GeoPoints.
 * Remove unused map file.
