@@ -82,7 +82,7 @@ class ServerNode:
         else:
             self.resp.success = True
             self.resp.status = url
-            self.resp.map.header.stamp = rospy.Time.now()
+            self.resp.map.header.stamp = rospy.Time()
             self.resp.map.header.frame_id = '/map'
         return self.resp
 

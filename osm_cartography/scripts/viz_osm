@@ -235,7 +235,7 @@ class VizNode():
     def timer_callback(self, event):
         """ Called periodically to refresh map visualization. """
         if self.msg is not None:
-            now = rospy.Time.now()
+            now = rospy.Time()
             for m in self.msg.markers:
                 m.header.stamp = now
             self.pub.publish(self.msg)
