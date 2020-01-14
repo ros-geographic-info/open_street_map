@@ -1,6 +1,13 @@
 Change history
 ==============
 
+Forthcoming
+-----------
+* Remove dependency on rviz from osm_cartography (`#18 <https://github.com/ros-geographic-info/open_street_map/issues/18>`_)
+  rviz isn't a strict requirement for running the map server and people who want to use the rviz functionality probably already have rviz installed.
+* Publish static marker with time 0. (`#14 <https://github.com/ros-geographic-info/open_street_map/issues/14>`_)
+* Contributors: Ronald Ensing, Will Gardner
+
 0.2.4 (2017-12-06)
 ------------------
 * Convert to package xml format 2 and add launch file dependencies
