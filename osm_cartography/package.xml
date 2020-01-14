@@ -25,7 +25,6 @@
   <depend>visualization_msgs</depend>
 
   <exec_depend>route_network</exec_depend>
-  <exec_depend>rviz</exec_depend>
 
   <test_depend>roslaunch</test_depend>
 
