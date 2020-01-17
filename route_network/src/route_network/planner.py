@@ -46,7 +46,7 @@ import numpy
 import math
 import geodesy.utm
 import geodesy.wu_point
-import rospy
+import rclpy
 
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RoutePath

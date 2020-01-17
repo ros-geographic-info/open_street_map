@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-
-PKG='osm_cartography'
-import roslib; roslib.load_manifest(PKG)
-
 import unittest
 
 from geodesy import bounding_box

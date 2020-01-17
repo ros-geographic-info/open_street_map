@@ -1,5 +1,6 @@
-<package format="2">
-
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>osm_cartography</name>
   <version>0.2.5</version>
   <description>
@@ -13,23 +14,19 @@
   <url type="repository">https://github.com/ros-geographic-info/open_street_map.git</url>
   <url type="bugtracker">https://github.com/ros-geographic-info/open_street_map/issues</url>
 
-  <buildtool_depend>catkin</buildtool_depend>
-
-  <depend>dynamic_reconfigure</depend>
   <depend>geodesy</depend>
   <depend>geographic_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>rospy</depend>
-  <depend>tf</depend>
+  <depend>rclpy</depend>
+  <depend>tf2</depend>
   <depend>std_msgs</depend>
   <depend>visualization_msgs</depend>
 
   <exec_depend>route_network</exec_depend>
 
-  <test_depend>roslaunch</test_depend>
+  <test_depend>python3-pytest</test_depend>
 
   <export>
-    <rosdoc config="rosdoc.yaml" />
+      <build_type>ament_python</build_type>
   </export>
-
 </package>

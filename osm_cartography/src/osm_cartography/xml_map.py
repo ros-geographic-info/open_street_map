@@ -43,12 +43,7 @@ Generate geographic information maps based on Open Street Map XML data.
 
 """
 
-from __future__ import print_function
-
 from xml.etree import ElementTree
-
-PKG_NAME = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG_NAME)
 
 import unique_id
 from geodesy import bounding_box
