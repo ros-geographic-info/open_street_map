@@ -58,6 +58,7 @@ try:
 except ImportError:
     from uuid_msgs.msg import UniqueID
 
+
 def get_required_attribute(el, key):
     """ Get attribute key of element *el*.
 
@@ -67,6 +68,7 @@ def get_required_attribute(el, key):
     if val == None:
         raise ValueError('required attribute missing: ' + key)
     return val
+
 
 def makeOsmUniqueID(namespace, el_id):
     """Make UniqueID message for *el_id* number in OSM sub-namespace *namespace*.
@@ -84,6 +86,7 @@ def makeOsmUniqueID(namespace, el_id):
     ns = 'http://openstreetmap.org/' + namespace + '/'
     return unique_id.toMsg(unique_id.fromURL(ns + str(el_id)))
 
+
 def get_tag(el):
     """ :returns: `geographic_msgs/KeyValue`_ message for `<tag>` *el* if any, None otherwise. """
     pair = None
@@ -93,7 +96,8 @@ def get_tag(el):
         pair.key = key
         pair.value = get_required_attribute(el, 'v')
         return pair
-    
+
+
 def get_osm(url, bounds):
     """Get `geographic_msgs/GeographicMap`_ from Open Street Map XML data.
 
@@ -115,7 +119,7 @@ def get_osm(url, bounds):
     else:
         raise ValueError('unsupported URL: ' + url)
 
-    gmap = GeographicMap(id = unique_id.toMsg(unique_id.fromURL(url)))
+    gmap = GeographicMap(id=unique_id.toMsg(unique_id.fromURL(url)))
     xm = None
     try:
         f = open(filename, 'r')
@@ -185,7 +189,7 @@ def get_osm(url, bounds):
 
         for mbr in el.iterfind('member'):
             mbr_type = get_required_attribute(mbr, 'type')
-            if mbr_type in set(['node', 'way', 'relation']):
+            if mbr_type in {'node', 'way', 'relation'}:
                 mbr_id = get_required_attribute(mbr, 'ref')
                 feature.components.append(makeOsmUniqueID(mbr_type, mbr_id))
             else:
@@ -200,37 +204,37 @@ def get_osm(url, bounds):
 
     return gmap
 
-interesting_tags = set(['access',
-                        'amenity',
-                        'boundary',
-                        'bridge',
-                        'building',
-                        'ele',
-                        'highway',
-                        'landuse',
-                        'lanes',
-                        'layer',
-                        'maxheight',
-                        'maxspeed',
-                        'maxwidth',
-                        'name',
-                        'network',
-                        'oneway',
-                        'railway',
-                        'ref',
-                        'restriction',
-                        'route',
-                        'street',
-                        'tunnel',
-                        'type',
-                        'width'])
 
+interesting_tags = {'access',
+                    'amenity',
+                    'boundary',
+                    'bridge',
+                    'building',
+                    'ele',
+                    'highway',
+                    'landuse',
+                    'lanes',
+                    'layer',
+                    'maxheight',
+                    'maxspeed',
+                    'maxwidth',
+                    'name',
+                    'network',
+                    'oneway',
+                    'railway',
+                    'ref',
+                    'restriction',
+                    'route',
+                    'street',
+                    'tunnel',
+                    'type',
+                    'width'}
 
-ignored_values = set(['bridleway',
-                      'construction',
-                      'cycleway',
-                      'footway',
-                      'path',
-                      'pedestrian',
-                      'proposed',
-                      'steps'])
+ignored_values = {'bridleway',
+                  'construction',
+                  'cycleway',
+                  'footway',
+                  'path',
+                  'pedestrian',
+                  'proposed',
+                  'steps'}
