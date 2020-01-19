@@ -1,18 +1,34 @@
 #!/usr/bin/env python
+from glob import glob
+import os
 
-from distutils.core import setup
-from catkin_pkg.python_setup import generate_distutils_setup
+from setuptools import setup
 
-d = generate_distutils_setup(
-    packages=['route_network'],
-    package_dir={'': 'src'},
-    install_requires=['rospy',
-                      'geodesy',
-                      'geographic_msgs',
-                      'geometry_msgs',
-                      'nav_msgs',
-                      'rospy',
-                      'visualization_msgs'],
-    )
+PACKAGE_NAME = "route_network"
+SHARE_DIR = os.path.join("share", PACKAGE_NAME)
 
-setup(**d)
+setup(
+    name=PACKAGE_NAME,
+    version='0.2.5',
+    packages=["route_network", "route_network.nodes"],
+    data_files=[
+        ('share/' + PACKAGE_NAME, ['package.xml']),
+        (os.path.join(SHARE_DIR, "launch"), glob(os.path.join("launch", "*.launch.py"))),
+        (os.path.join(SHARE_DIR, "config"), glob(os.path.join("config", "*.yaml")))],
+    package_dir={'': 'src', },
+    py_modules=[],
+    zip_safe=True,
+    install_requires=['setuptools'],
+    author="Jack O'Quin",
+    maintainer="Jack O'Quin",
+    keywords=['ROS2'],
+    description='Route network graphing and path planning.',
+    license='BSD',
+    entry_points={
+        'console_scripts': ['plan_route = route_network.nodes.plan_route:main',
+                            'route_network = route_network.nodes.route_network:main',
+                            'rviz_goal = route_network.nodes.rviz_goal:main',
+                            'viz_plan = route_network.nodes.viz_plan:main',
+                            'viz_routes = route_network.nodes.viz_routes:main']
+    }
+)

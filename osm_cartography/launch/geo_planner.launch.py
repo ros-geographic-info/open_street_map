@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import sys
 
 from ament_index_python.packages import get_package_share_directory
@@ -26,7 +25,7 @@ def generate_launch_description():
     """
 
     # The URL to the OSM file
-    map_url = "package://osm_cartography/maps/ixtapa.osm"
+    map_url = os.path.join(get_package_share_directory("osm_cartography"), "tests", "prc.osm")
 
     # Start map server
     osm_server = actions.Node(
@@ -66,7 +65,9 @@ def generate_launch_description():
     rviz_goal = actions.Node(
         package='route_network', node_executable='rviz_goal', output='screen')
 
-    return LaunchDescription([osm_server, viz_osm, route_network, plan_route, tf_world_map, tf_map_local_map, rviz2, rviz_goal])
+    return LaunchDescription(
+        [osm_server, viz_osm, route_network, plan_route, tf_world_map, tf_map_local_map, rviz2,
+         rviz_goal])
 
 
 def main(argv):
@@ -82,7 +83,7 @@ def main(argv):
     print('')
 
     ls = LaunchService()
-    ls.include_launch_description(get_default_launch_description(prefix_output_with_name=False))
+    ls.include_launch_description(get_default_launch_description())
     ls.include_launch_description(ld)
     return ls.run()
 

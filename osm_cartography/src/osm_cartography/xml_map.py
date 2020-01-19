@@ -70,7 +70,7 @@ def get_required_attribute(el, key):
     return val
 
 
-def makeOsmUniqueID(namespace, el_id):
+def make_osm_unique_id(namespace, el_id):
     """Make UniqueID message for *el_id* number in OSM sub-namespace *namespace*.
 
     :param namespace: OSM sub-namespace

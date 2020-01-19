@@ -47,6 +47,7 @@ import math
 import geodesy.utm
 import geodesy.wu_point
 import rclpy
+from rclpy.node import Node
 
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RoutePath
@@ -55,13 +56,16 @@ from geographic_msgs.srv import GetRoutePlan
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
 
+
 class PlannerError(Exception):
     """Base class for exceptions in this module."""
+
 
 class NoPathToGoalError(PlannerError):
     """Exception raised when there is no path to the goal."""
 
-class Edge():
+
+class Edge:
     """
     :class:`Edge` stores graph edge data for a way point.
 
@@ -70,6 +74,7 @@ class Edge():
     :param heuristic: Distance heuristic from start to end (must
                       *not* be an over-estimate).
     """
+
     def __init__(self, end, seg, heuristic=0.0):
         """Constructor. """
         self.end = end
@@ -77,28 +82,31 @@ class Edge():
         self.h = heuristic
 
     def __str__(self):
-        return str(self.end)+' '+str(self.seg.uuid)+' ('+str(self.h)+')'
+        return str(self.end) + ' ' + str(self.seg.uuid) + ' (' + str(self.h) + ')'
 
-class Planner():
+
+class Planner(Node):
     """
     :class:`Planner` plans a route through a RouteNetwork.
 
     :param graph: `geographic_msgs/RouteNetwork`_ message.
     """
+
     def __init__(self, graph):
         """Constructor.
 
         Collects relevant information from route network message,
         providing convenient access to the data.
         """
-        self._shift_to_route_within = rospy.get_param('~shift_to_route_within', 7.)
-        rospy.loginfo("~shift_to_route_within: %.2f", self._shift_to_route_within)
+        super(Planner, self).__init__("planner")
+        self._shift_to_route_within = self.declare_parameter('shift_to_route_within', 7.).value
+        self.get_logger().info("shift_to_route_within: %.2f", self._shift_to_route_within)
 
         self.graph = graph
         self.points = geodesy.wu_point.WuPointSet(graph.points)
 
         # Create empty list of graph edges leaving each map point.
-        self.edges = [[] for wid in xrange(len(self.points))]
+        self.edges = [[] for wid in range(len(self.points))]
         for seg in self.graph.segments:
             index = self.points.index(seg.start.uuid)
             if index is not None:
@@ -106,8 +114,7 @@ class Planner():
                 if n is not None:
                     # use 2D Euclidean distance for the heuristic
                     dist = self.points.distance2D(index, n)
-                    self.edges[index].append(Edge(n, seg.id,
-                                                  heuristic=dist))
+                    self.edges[index].append(Edge(n, seg.id, heuristic=dist))
 
         # Create a list with utm point for each point
         self.utm_points = dict()
@@ -116,7 +123,7 @@ class Planner():
 
     def __str__(self):
         val = '\n'
-        for i in xrange(len(self.edges)):
+        for i in range(len(self.edges)):
             val += str(i) + ':\n'
             for k in self.edges[i]:
                 val += '    ' + str(k) + '\n'
@@ -131,13 +138,12 @@ class Planner():
         :raises: :exc:`NoPathToGoalError` if goal not reachable.
         """
         # validate request parameters
-        if req.network.uuid != self.graph.id.uuid: # different route network?
+        if req.network.uuid != self.graph.id.uuid:  # different route network?
             raise ValueError('invalid GetRoutePlan network: '
                              + str(req.network.uuid))
         start_idx = self.points.index(req.start.uuid)
         if start_idx is None:
-            raise ValueError('unknown starting point: '
-                             + str(req.start.uuid))
+            raise ValueError('unknown starting point: ' + str(req.start.uuid))
         goal_idx = self.points.index(req.goal.uuid)
         if goal_idx is None:
             raise ValueError('unknown goal: ' + str(req.goal.uuid))
@@ -148,14 +154,14 @@ class Planner():
 
         # A* shortest path algorithm
         opened = [[0.0, start_idx]]
-        closed = [False for wid in xrange(len(self.points))]
+        closed = [False for wid in range(len(self.points))]
         closed[start_idx] = True
-        backpath = [None for wid in xrange(len(self.points))]
+        backpath = [None for wid in range(len(self.points))]
         while True:
             if len(opened) == 0:
                 raise NoPathToGoalError('No path from ' + req.start.uuid
                                         + ' to ' + req.goal.uuid)
-            opened.sort()          # :todo: make search more efficient
+            opened.sort()  # :todo: make search more efficient
             opened.reverse()
             h, e = opened.pop()
             if e == goal_idx:
@@ -174,7 +180,7 @@ class Planner():
         while backpath[e] is not None:
             plan.segments.append(backpath[e][1].seg)
             e = backpath[e][0]
-        assert(e == start_idx)
+        assert (e == start_idx)
         plan.segments.reverse()
         return plan
 
@@ -201,25 +207,25 @@ class Planner():
         if math.isnan(req.goal.altitude):
             req.goal.altitude = 0.0
         # get the nearest segment to the start point
-        (start_seg, start_dist, start_lot) = self.getNearestSegment(req.start)
+        start_seg, start_dist, start_lot = self.get_nearest_segment(req.start)
         if start_seg is None:
             raise ValueError('no nearest segment found for starting way point: ' + str(req.start))
         # get the nearest segment to the destination point
-        (goal_seg, goal_dist, goal_lot) = self.getNearestSegment(req.goal)
+        (goal_seg, goal_dist, goal_lot) = self.get_nearest_segment(req.goal)
         if goal_seg is None:
             raise ValueError('no nearest segment found for goal way point: ' + str(req.goal))
 
         # determine the path
         result = []
         try:
-            (route_path, dist) = self._planner_seg(req.start, start_seg, req.goal, goal_seg)
-        except NoPathToGoalError, e:
+            route_path, dist = self._planner_seg(req.start, start_seg, req.goal, goal_seg)
+        except NoPathToGoalError as e:
             return result, self.graph.id, start_seg.id, goal_seg.id, -1
         start_utm = geodesy.utm.fromMsg(req.start)
         goal_utm = geodesy.utm.fromMsg(req.goal)
         # copy the route to the result list and adds the start and/or goal position to the path
         if route_path.segments:
-            seg = self._getSegment(route_path.segments[0])
+            seg = self._get_segment(route_path.segments[0])
             p = self._get_min_point(start_seg, start_lot)
             # add the start point if it is not close to the route
             dist_first_to_start = self.distance2D(p, start_utm)
@@ -227,17 +233,21 @@ class Planner():
                 result.append(req.start)
             result.append(p.toMsg())
             # add only the endpoints of the segments
-            for index in xrange(len(route_path.segments)):
+            for index in range(len(route_path.segments)):
                 seg_id = route_path.segments[index]
-                seg = self._getSegment(seg_id)
+                seg = self._get_segment(seg_id)
 
                 if index == 0:
                     # add the segment start point, if the plan segment and nearest segment are not equal
-                    if not ((seg.end.uuid == start_seg.start.uuid and seg.start.uuid == start_seg.end.uuid) or (seg.start.uuid == start_seg.start.uuid and seg.end.uuid == start_seg.end.uuid)):
+                    if not ((
+                                    seg.end.uuid == start_seg.start.uuid and seg.start.uuid == start_seg.end.uuid) or (
+                                    seg.start.uuid == start_seg.start.uuid and seg.end.uuid == start_seg.end.uuid)):
                         result.append(self.points[seg.start.uuid].position())
-                if index+1 == len(route_path.segments):
+                if index + 1 == len(route_path.segments):
                     # add the end point of the last segment, if the plan segment and nearest segment are not equal
-                    if not ((seg.end.uuid == goal_seg.start.uuid and seg.start.uuid == goal_seg.end.uuid) or (seg.start.uuid == goal_seg.start.uuid and seg.end.uuid == goal_seg.end.uuid)):
+                    if not ((
+                                    seg.end.uuid == goal_seg.start.uuid and seg.start.uuid == goal_seg.end.uuid) or (
+                                    seg.start.uuid == goal_seg.start.uuid and seg.end.uuid == goal_seg.end.uuid)):
                         result.append(self.points[seg.end.uuid].position())
                 else:
                     result.append(self.points[seg.end.uuid].position())
@@ -249,7 +259,9 @@ class Planner():
             if dist_last_to_goal > self._shift_to_route_within:
                 result.append(req.goal)
         else:
-            if ((start_seg.end.uuid == goal_seg.start.uuid and start_seg.start.uuid == goal_seg.end.uuid) or (start_seg.start.uuid == goal_seg.start.uuid and start_seg.end.uuid == goal_seg.end.uuid)):
+            if ((
+                    start_seg.end.uuid == goal_seg.start.uuid and start_seg.start.uuid == goal_seg.end.uuid) or (
+                    start_seg.start.uuid == goal_seg.start.uuid and start_seg.end.uuid == goal_seg.end.uuid)):
                 # direct connection
                 result.append(req.start)
                 result.append(req.goal)
@@ -318,14 +330,16 @@ class Planner():
 
         closed = [0 for wid in xrange(len(self.points))]
         closed[start__seg_start_idx] = -1.
-        backpath = [None for wid in xrange(len(self.points))]
+        backpath = [None for wid in range(len(self.points))]
         reached_goal = None
         while True:
             if len(opened) == 0:
-                raise NoPathToGoalError('No path from ' + str(start_geo_point) + ' to ' + str(goal_geo_point))
+                raise NoPathToGoalError(
+                    'No path from ' + str(start_geo_point) + ' to ' + str(goal_geo_point))
             opened.sort()
             h, e = opened.pop(0)
-            if ((e == goal__seg_start_idx and goal__seg_start_idx != start__seg_start_idx) or (e == goal__seg_end_idx and goal__seg_end_idx != start__seg_start_idx)):
+            if ((e == goal__seg_start_idx and goal__seg_start_idx != start__seg_start_idx) or (
+                    e == goal__seg_end_idx and goal__seg_end_idx != start__seg_start_idx)):
                 reached_goal = e
                 break
             for edge in self.edges[e]:
@@ -357,9 +371,9 @@ class Planner():
                 e = backpath[e][0]
                 # :TODO: sometimeswe we have an MemoryError
         except:
-            print "Error, count of segments: ", len(plan.segments)
+            print("Error, count of segments: ", len(plan.segments))
             raise
-        assert(e == start__seg_start_idx or e == start__seg_end_idx)
+        assert (e == start__seg_start_idx or e == start__seg_end_idx)
         plan.segments.reverse()
 
         return plan, dist
@@ -392,7 +406,7 @@ class Planner():
         else:
             return utm_seg_end
 
-    def _getSegment(self, uuid):
+    def _get_segment(self, uuid):
         """ Get the segment that corresponds to the given ID.
 
         :param uuid: The id of the segment.
@@ -406,7 +420,7 @@ class Planner():
                 return seg
         return None
 
-    def _getSegmentLength(self, start_point_id, seg_id):
+    def _get_segment_length(self, start_point_id, seg_id):
         """ Searches the segment with given id with given start point in a pre-cached list
             and return its length.
 
@@ -424,7 +438,7 @@ class Planner():
                 return edge.h
         return None
 
-    def getNearestSegment(self, geo_point, max_dist=500.):
+    def get_nearest_segment(self, geo_point, max_dist=500.):
         """ Determine the nearest segment to the given point.
 
         :param geo_point: The position.
@@ -449,26 +463,27 @@ class Planner():
                     # determine the length of the segment
                     length_seg = self._getSegmentLength(seg.start, seg.id)
                     if not length_seg is None:
-                      length_2start = self.distance2D(utm_point, self.utm_points[index])
-                      length_2end = self.distance2D(utm_point, self.utm_points[n])
-                      if length_2start < max_dist or length_2end < max_dist:
-                          lot_p = self.getPerpendicularPoint2D(self.utm_points[index], self.utm_points[n], utm_point)
-                          length_lot2p = self.distance2D(utm_point, lot_p)
-                          length_lot2start = self.distance2D(lot_p, self.utm_points[index])
-                          length_lot2end = self.distance2D(lot_p, self.utm_points[n])
-                          if length_lot2start <= length_seg and length_lot2end <= length_seg:
-                              cur_min = length_lot2p
-                              if cur_min < min_dist:
-                                  min_dist = cur_min
-                                  result = (seg, min_dist, lot_p)
-                          else:
-                              cur_min = min(length_2start, length_2end)-1.0
-                              if cur_min < min_dist:
-                                  min_dist = cur_min
-                                  result = (seg, min_dist, lot_p)
+                        length_2start = self.distance2D(utm_point, self.utm_points[index])
+                        length_2end = self.distance2D(utm_point, self.utm_points[n])
+                        if length_2start < max_dist or length_2end < max_dist:
+                            lot_p = self.getPerpendicularPoint2D(self.utm_points[index],
+                                                                 self.utm_points[n], utm_point)
+                            length_lot2p = self.distance2D(utm_point, lot_p)
+                            length_lot2start = self.distance2D(lot_p, self.utm_points[index])
+                            length_lot2end = self.distance2D(lot_p, self.utm_points[n])
+                            if length_lot2start <= length_seg and length_lot2end <= length_seg:
+                                cur_min = length_lot2p
+                                if cur_min < min_dist:
+                                    min_dist = cur_min
+                                    result = (seg, min_dist, lot_p)
+                            else:
+                                cur_min = min(length_2start, length_2end) - 1.0
+                                if cur_min < min_dist:
+                                    min_dist = cur_min
+                                    result = (seg, min_dist, lot_p)
         return result
 
-    def getPerpendicularPoint2D(self, utm_start, utm_end, utm_p):
+    def get_perpendicular_point2D(self, utm_start, utm_end, utm_p):
         """ Returns the orthongal projection of point utm_p onto a line segment (utm_start -> utm_end)
 
         :param utm_start: The starting point of the line segment.
@@ -484,17 +499,18 @@ class Planner():
         s = numpy.array([utm_start.easting, utm_start.northing])
         e = numpy.array([utm_end.easting, utm_end.northing])
         p = numpy.array([utm_p.easting, utm_p.northing])
-        rv = e - s #direction vector of the line
-        rv_2 = (rv*rv).sum()
+        rv = e - s  # direction vector of the line
+        rv_2 = (rv * rv).sum()
         if rv_2 == 0.:
             raise ValueError('invalid segment length')
         try:
-            lamda = ((p*rv).sum() - (s*rv).sum()) / rv_2
+            lamda = ((p * rv).sum() - (s * rv).sum()) / rv_2
             lot_p = s + lamda * rv
         except:
             import traceback
-            print traceback.format_exc()
-        return geodesy.utm.UTMPoint(lot_p[0], lot_p[1], zone=utm_p.gridZone()[0], band=utm_p.gridZone()[1])
+            print(traceback.format_exc())
+        return geodesy.utm.UTMPoint(lot_p[0], lot_p[1], zone=utm_p.gridZone()[0],
+                                    band=utm_p.gridZone()[1])
 
     @staticmethod
     def distance2D(utm1, utm2):
@@ -510,4 +526,4 @@ class Planner():
         """
         dx = utm2.easting - utm1.easting
         dy = utm2.northing - utm1.northing
-        return numpy.sqrt(dx*dx + dy*dy)
+        return numpy.sqrt(dx * dx + dy * dy)

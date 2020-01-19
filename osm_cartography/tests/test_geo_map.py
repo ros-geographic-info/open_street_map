@@ -12,6 +12,8 @@ from geodesy import bounding_box
 from osm_cartography.geo_map import *
 from osm_cartography import xml_map
 
+suite = unittest.TestSuite()
+
 #def fromLatLong(lat, lon, alt=float('nan')):
 #    """Generate WayPoint from latitude, longitude and (optional) altitude.
 #
@@ -62,5 +64,5 @@ class TestGeoMap(unittest.TestCase):
         self.assertEqual(len(gf), 2)
 
 if __name__ == '__main__':
-    import rosunit
-    rosunit.unitrun(PKG, 'test_geo_map_py', TestGeoMap) 
+    unittest.TextTestRunner().run(suite)
+

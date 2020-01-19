@@ -38,10 +38,8 @@ Create rviz markers for geographic information maps from Open Street
 Map server.
 """
 
-import rclpy
-
 import sys
-import itertools
+
 import geodesy.props
 import geodesy.utm
 import geodesy.wu_point
@@ -56,33 +54,35 @@ from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
-import osm_cartography.cfg.VizOSMConfig as Config
+import rclpy
+from rclpy.node import Node
 
-class VizNode():
 
+class VizNode(Node):
     def __init__(self):
         """
         ROS node to publish visualization markers for a GeographicMap.
         """
-        rospy.init_node('viz_osm')
+        super(VizNode, self).__init__("viz_osm")
+
         self.config = None
 
         # advertise visualization marker topic
-        self.pub = rospy.Publisher('visualization_marker_array',
-                                   MarkerArray, latch=True, queue_size=10)
+        self.pub = self.create_publisher(MarkerArray, 'visualization_marker_array', queue_size=10)
+
         self.map = None
         self.msg = None
-        rospy.wait_for_service('get_geographic_map')
-        self.get_map = rospy.ServiceProxy('get_geographic_map',
+        rclpy.wait_for_service('get_geographic_map')
+        self.get_map = rclpy.ServiceProxy('get_geographic_map',
                                           GetGeographicMap)
 
         # refresh the markers every three seconds, making them last four.
-        self.timer_interval = rospy.Duration(3)
-        self.marker_life = self.timer_interval + rospy.Duration(1)
-        rospy.Timer(self.timer_interval, self.timer_callback)
+        self.timer_interval = 3
+        self.marker_life = self.timer_interval + 1
+        self.timer = self.create_timer(self.timer_interval, self.timer_callback)
 
         # register dynamic reconfigure callback, which runs immediately
-        self.reconf_server = ReconfigureServer(Config, self.reconfigure)
+        # self.reconf_server = ReconfigureServer(Config, self.reconfigure)
 
     def get_markers(self, gmap):
         """Get markers for a GeographicMap message.
@@ -96,18 +96,17 @@ class VizNode():
         self.mark_way_points(ColorRGBA(r=1., g=1., b=0., a=0.8))
 
         # define arguments for displaying various feature types
-        road_props = set(['bridge', 'highway', 'tunnel'])
-        fargs = [(lambda(f): geodesy.props.match(f, road_props),
+        road_props = {'bridge', 'highway', 'tunnel'}
+        fargs = [(lambda f: geodesy.props.match(f, road_props),
                   ColorRGBA(r=8., g=0.2, b=0.2, a=0.8),
                   "roads_osm"),
-                 (lambda(f): geodesy.props.match(f, set(['building'])),
+                 (lambda f: geodesy.props.match(f, {'building'}),
                   ColorRGBA(r=0., g=0.3, b=0.7, a=0.8),
                   "buildings_osm"),
-                 (lambda(f): geodesy.props.match(f, set(['railway'])),
+                 (lambda f: geodesy.props.match(f, {'railway'}),
                   ColorRGBA(r=0., g=0.7, b=.7, a=0.8),
                   "railroad_osm"),
-                 (lambda(f): geodesy.props.match(f, set(['amenity',
-                                                         'landuse'])),
+                 (lambda f: geodesy.props.match(f, {'amenity', 'landuse'}),
                   ColorRGBA(r=0., g=1., b=0., a=0.5),
                   "other_osm")]
         for args in fargs:
@@ -115,15 +114,15 @@ class VizNode():
 
     def mark_boundaries(self, color):
         # draw outline of map boundaries
-        marker = Marker(header = self.map.header,
-                        ns = "bounds_osm",
-                        id = 0,
-                        type = Marker.LINE_STRIP,
-                        action = Marker.ADD,
-                        scale = Vector3(x=2.),
-                        color = color,
-                        lifetime = self.marker_life)
-    
+        marker = Marker(header=self.map.header,
+                        ns="bounds_osm",
+                        id=0,
+                        type=Marker.LINE_STRIP,
+                        action=Marker.ADD,
+                        scale=Vector3(x=2.),
+                        color=color,
+                        lifetime=self.marker_life)
+
         # Convert bounds latitudes and longitudes to UTM (no
         # altitude), convert UTM points to geometry_msgs/Point
         bbox = self.map.bounds
@@ -132,7 +131,7 @@ class VizNode():
         p1 = geodesy.utm.fromLatLong(min_lat, max_lon).toPoint()
         p2 = geodesy.utm.fromLatLong(max_lat, max_lon).toPoint()
         p3 = geodesy.utm.fromLatLong(max_lat, min_lon).toPoint()
-    
+
         # add line strips to bounds marker
         marker.points.append(p0)
         marker.points.append(p1)
@@ -155,21 +154,20 @@ class VizNode():
                bridge, tunnel, amenity, etc.
         """
         index = 0
-        for feature in itertools.ifilter(predicate,
-                                         self.map.features):
-            marker = Marker(header = self.map.header,
-                            ns = namespace,
-                            id = index,
-                            type = Marker.LINE_STRIP,
-                            action = Marker.ADD,
-                            scale = Vector3(x=2.),
-                            color = color,
-                            lifetime = self.marker_life)
+        for feature in filter(predicate, self.map.features):
+            marker = Marker(header=self.map.header,
+                            ns=namespace,
+                            id=index,
+                            type=Marker.LINE_STRIP,
+                            action=Marker.ADD,
+                            scale=Vector3(x=2.),
+                            color=color,
+                            lifetime=self.marker_life)
             index += 1
             prev_point = None
             for mbr in feature.components:
                 wu_point = self.map_points.get(mbr.uuid)
-                if wu_point:    # this component is a way point
+                if wu_point:  # this component is a way point
                     p = wu_point.toPointXY()
                     if prev_point:
                         marker.points.append(prev_point)
@@ -184,20 +182,20 @@ class VizNode():
         """
         index = 0
         for wp in self.map_points:
-            marker = Marker(header = self.map.header,
-                            ns = "waypoints_osm",
-                            id = index,
-                            type = Marker.CYLINDER,
-                            action = Marker.ADD,
-                            scale = Vector3(x=2., y=2., z=0.2),
-                            color = color,
-                            lifetime = self.marker_life)
+            marker = Marker(header=self.map.header,
+                            ns="waypoints_osm",
+                            id=index,
+                            type=Marker.CYLINDER,
+                            action=Marker.ADD,
+                            scale=Vector3(x=2., y=2., z=0.2),
+                            color=color,
+                            lifetime=self.marker_life)
             index += 1
             # use easting and northing coordinates (ignoring altitude)
             marker.pose.position = wp.toPointXY()
             marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
             self.msg.markers.append(marker)
-    
+
     def reconfigure(self, config, level):
         """Dynamic reconfigure callback.
 
@@ -209,17 +207,17 @@ class VizNode():
         """
         if self.config is None:
             self.config = config
-        rospy.loginfo('Map URL: ' + str(config['map_url']))
+        self.get_logger().info('Map URL: ' + str(config['map_url']))
 
         try:
             resp = self.get_map(config['map_url'], bounding_box.makeGlobal())
-        except rospy.ServiceException as e:
-            rospy.logerr("Service call failed:", str(e))
+        except rclpy.ServiceException as e:
+            self.get_logger().error("Service call failed:", str(e))
             # ignore new config, it failed
-        else:                           # get_map returned
+        else:  # get_map returned
             if resp.success:
                 self.get_markers(resp.map)
-                self.config = config    # save new URL
+                self.config = config  # save new URL
                 # publish visualization markers (on a latched topic)
                 self.pub.publish(self.msg)
             else:
@@ -230,16 +228,24 @@ class VizNode():
     def timer_callback(self, event):
         """ Called periodically to refresh map visualization. """
         if self.msg is not None:
-            now = rospy.Time()
+            now = self.now()
             for m in self.msg.markers:
                 m.header.stamp = now
             self.pub.publish(self.msg)
 
-def main():
+
+def main(args=None):
+    rclpy.init(args)
+
     viznode = VizNode()
     try:
-        rospy.spin()
-    except rospy.ROSInterruptException: pass
+        rclpy.spin(viznode)
+    except rclpy.ROSInterruptException:
+        pass
+
+    viznode.destroy_node()
+    rclpy.shutdown()
+
 
 if __name__ == '__main__':
     # run main function and exit

@@ -12,30 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import sys
 
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription, LaunchIntrospector, LaunchService
 from launch_ros import actions, get_default_launch_description
 
 
 def generate_launch_description():
     """
-    Launch file for visualizing OSM data
+    Launch file for visualizing OSM route networks
     """
-    map_url = os.path.join(get_package_share_directory("osm_cartography"), "tests", "prc.osm")
+    # Route planning node
+    plan_route = actions.Node(
+        package='route_network', node_executable='plan_route', output='screen')
 
-    # Start map server
-    osm_server = actions.Node(
-        package='osm_cartography', node_executable='osm_server', output='screen')
+    # Route plan visualization
+    viz_plan = actions.Node(
+        package='route_network', node_executable='viz_plan', output='screen')
 
-    # Start map visualization
-    viz_osm = actions.Node(
-        package='osm_cartography', node_executable='viz_osm', output='screen',
-        parameters=[{"map_url": map_url}])
-
-    return LaunchDescription([osm_server, viz_osm])
+    return LaunchDescription([plan_route, viz_plan])
 
 
 def main(argv):

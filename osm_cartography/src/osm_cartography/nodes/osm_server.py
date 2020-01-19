@@ -38,23 +38,20 @@ Provide geographic information maps from Open Street Map on request.
 
 This is just a toy node, useful for testing.
 """
+from geographic_msgs.srv import GetGeographicMap
+from geographic_msgs.srv import GetGeographicMapResponse
 
 import rclpy
 from rclpy.node import Node
-
-from geographic_msgs.srv import GetGeographicMap
-from geographic_msgs.srv import GetGeographicMapResponse
 
 from osm_cartography import xml_map
 
 
 class ServerNode(Node):
-
     def __init__(self):
         super(ServerNode, self).__init__("osm_server")
+        self.srv = self.create_service(GetGeographicMap, 'get_geographic_map', self.map_server)
 
-        self.srv = rclpy.Service('get_geographic_map', GetGeographicMap,
-                                 self.map_server)
         self.resp = None
 
     def map_server(self, req):
@@ -86,16 +83,13 @@ class ServerNode(Node):
             self.resp.map.header.frame_id = '/map'
         return self.resp
 
-    def run(self):
-        rospy.spin()
-
 
 def main(args=None):
     rclpy.init(args)
     server = ServerNode()
 
     try:
-        server.spin()
+        rclpy.spin(server)
     except rclpy.ROSInterruptException:
         pass
 
@@ -104,4 +98,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
