@@ -39,7 +39,6 @@ Provide geographic information maps from Open Street Map on request.
 This is just a toy node, useful for testing.
 """
 from geographic_msgs.srv import GetGeographicMap
-from geographic_msgs.srv import GetGeographicMapResponse
 
 import rclpy
 from rclpy.node import Node
@@ -54,11 +53,12 @@ class ServerNode(Node):
 
         self.resp = None
 
-    def map_server(self, req):
+    def map_server(self, req, resp):
         """
         GetGeographicMap service callback.
 
         :param req: Request.
+        :param resp: Response
         :returns: Response.
         """
         url = str(req.url)
@@ -69,28 +69,27 @@ class ServerNode(Node):
         if url == '' and self.resp is not None:
             return self.resp
 
-        self.resp = GetGeographicMapResponse()
         try:
-            self.resp.map = xml_map.get_osm(url, req.bounds)
+            resp.map = xml_map.get_osm(url, req.bounds)
         except (IOError, ValueError) as e:
             self.get_logger().error(str(e))
-            self.resp.success = False
-            self.resp.status = str(e)
+            resp.success = False
+            resp.status = str(e)
         else:
-            self.resp.success = True
-            self.resp.status = url
-            self.resp.map.header.stamp = self.now()
-            self.resp.map.header.frame_id = '/map'
-        return self.resp
+            resp.success = True
+            resp.status = url
+            resp.map.header.stamp = self.now()
+            resp.map.header.frame_id = '/map'
+        return resp
 
 
 def main(args=None):
-    rclpy.init(args)
+    rclpy.init(args=args)
     server = ServerNode()
 
     try:
         rclpy.spin(server)
-    except rclpy.ROSInterruptException:
+    except rclpy.exceptions.ROSInterruptException:
         pass
 
     server.destroy_node()

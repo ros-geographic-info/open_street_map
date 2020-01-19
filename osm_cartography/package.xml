@@ -21,6 +21,7 @@
   <depend>tf2</depend>
   <depend>std_msgs</depend>
   <depend>visualization_msgs</depend>
+  <depend>unique_identifier_msgs</depend>
 
   <exec_depend>route_network</exec_depend>
 

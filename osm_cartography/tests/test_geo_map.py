@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 import unittest
 
-try:
-    import unique_id
-except ImportError:
-    pass
-
 from geographic_msgs.msg import GeographicMap
 
 from geodesy import bounding_box
@@ -14,7 +9,8 @@ from osm_cartography import xml_map
 
 suite = unittest.TestSuite()
 
-#def fromLatLong(lat, lon, alt=float('nan')):
+
+# def fromLatLong(lat, lon, alt=float('nan')):
 #    """Generate WayPoint from latitude, longitude and (optional) altitude.
 #
 #    :returns: minimal WayPoint object just for test cases.
@@ -55,14 +51,14 @@ class TestGeoMap(unittest.TestCase):
         gf = GeoMapFeatures(gm)
         i = 0
         for f in gf:
-            if type(f.id.uuid) == str(): # old-style message?
+            if type(f.id.uuid) == str():  # old-style message?
                 self.assertEqual(f.id.uuid, uuids[i])
             else:
-                self.assertEqual(unique_id.toHexString(f.id), uuids[i])
+                self.assertEqual(str(f.id), uuids[i])
             i += 1
         self.assertEqual(i, 2)
         self.assertEqual(len(gf), 2)
 
+
 if __name__ == '__main__':
     unittest.TextTestRunner().run(suite)
-

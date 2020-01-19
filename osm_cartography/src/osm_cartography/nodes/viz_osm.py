@@ -68,21 +68,19 @@ class VizNode(Node):
         self.config = None
 
         # advertise visualization marker topic
-        self.pub = self.create_publisher(MarkerArray, 'visualization_marker_array', queue_size=10)
+        self.pub = self.create_publisher(MarkerArray, 'visualization_marker_array', 10)
 
         self.map = None
         self.msg = None
-        rclpy.wait_for_service('get_geographic_map')
-        self.get_map = rclpy.ServiceProxy('get_geographic_map',
-                                          GetGeographicMap)
+
+        self.get_map = self.create_client(GetGeographicMap, 'get_geographic_map')
+        while not self.get_map.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
 
         # refresh the markers every three seconds, making them last four.
         self.timer_interval = 3
         self.marker_life = self.timer_interval + 1
         self.timer = self.create_timer(self.timer_interval, self.timer_callback)
-
-        # register dynamic reconfigure callback, which runs immediately
-        # self.reconf_server = ReconfigureServer(Config, self.reconfigure)
 
     def get_markers(self, gmap):
         """Get markers for a GeographicMap message.
@@ -144,7 +142,8 @@ class VizNode(Node):
         self.msg.markers.append(marker)
 
     def mark_features(self, predicate, color, namespace):
-        """Create outline for map features
+        """
+        Create outline for map features
 
         :param predicate: function to match desired features
         :param color: RGBA value
@@ -196,23 +195,32 @@ class VizNode(Node):
             marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
             self.msg.markers.append(marker)
 
-    def reconfigure(self, config, level):
-        """Dynamic reconfigure callback.
+    def timer_callback(self):
+        """
+        Called periodically to refresh map visualization.
+        """
+        if self.msg is not None:
+            now = self.now()
+            for m in self.msg.markers:
+                m.header.stamp = now
+            self.pub.publish(self.msg)
 
+    def reconfigure(self, config, level):
+        """
+        Dynamic reconfigure callback.
         :param config: New configuration.
         :param level:  0x00000001 bit set if URL changed (ignored).
-
         :returns: New config if valid, old one otherwise. That updates
                   the dynamic reconfigure GUI window.
         """
         if self.config is None:
             self.config = config
-        self.get_logger().info('Map URL: ' + str(config['map_url']))
+        rospy.loginfo('Map URL: ' + str(config['map_url']))
 
         try:
             resp = self.get_map(config['map_url'], bounding_box.makeGlobal())
-        except rclpy.ServiceException as e:
-            self.get_logger().error("Service call failed:", str(e))
+        except rospy.ServiceException as e:
+            rospy.logerr("Service call failed:", str(e))
             # ignore new config, it failed
         else:  # get_map returned
             if resp.success:
@@ -225,22 +233,14 @@ class VizNode(Node):
 
         return self.config
 
-    def timer_callback(self, event):
-        """ Called periodically to refresh map visualization. """
-        if self.msg is not None:
-            now = self.now()
-            for m in self.msg.markers:
-                m.header.stamp = now
-            self.pub.publish(self.msg)
-
 
 def main(args=None):
-    rclpy.init(args)
+    rclpy.init(args=args)
 
     viznode = VizNode()
     try:
         rclpy.spin(viznode)
-    except rclpy.ROSInterruptException:
+    except rclpy.exceptions.ROSInterruptException:
         pass
 
     viznode.destroy_node()

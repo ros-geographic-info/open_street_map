@@ -75,7 +75,7 @@ class ClientNode(Node):
 
 
 def main(args=None):
-    rclpy.init(args)
+    rclpy.init(args=args)
 
     url = ''
     if len(args) == 2:
@@ -87,7 +87,7 @@ def main(args=None):
     try:
         client = ClientNode(url)
         client.send_request()
-    except rclpy.ROSInterruptException:
+    except rclpy.exceptions.ROSInterruptException:
         pass
 
     while rclpy.ok():

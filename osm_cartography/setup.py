@@ -15,12 +15,14 @@ setup(
         ('share/' + PACKAGE_NAME, ['package.xml']),
         (os.path.join(SHARE_DIR, "launch"), glob(os.path.join("launch", "*.launch.py"))),
         (os.path.join(SHARE_DIR, "config"), glob(os.path.join("config", "*.yaml"))),
-        (os.path.join(SHARE_DIR, "tests"), glob(os.path.join("tests", "*.osm")))
+        (os.path.join(SHARE_DIR, "tests"), glob(os.path.join("tests", "*.osm"))),
+        (os.path.join(SHARE_DIR, "rviz"), glob(os.path.join("rviz", "*.rviz")))
     ],
-    package_dir={'': 'src', },
+    package_dir={'': 'src'},
     py_modules=[],
     zip_safe=True,
-    install_requires=['setuptools'],
+    install_requires=['setuptools',
+                      'pyproj'],
     author="Jack O'Quin",
     maintainer="Jack O'Quin",
     keywords=['ROS2'],

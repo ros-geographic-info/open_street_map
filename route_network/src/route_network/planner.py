@@ -46,8 +46,6 @@ import numpy
 import math
 import geodesy.utm
 import geodesy.wu_point
-import rclpy
-from rclpy.node import Node
 
 from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RoutePath
@@ -55,6 +53,9 @@ from geographic_msgs.msg import RouteSegment
 from geographic_msgs.srv import GetRoutePlan
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
+
+import rclpy
+from rclpy.node import Node
 
 
 class PlannerError(Exception):
@@ -130,7 +131,8 @@ class Planner(Node):
         return val
 
     def planner(self, req):
-        """ Plan route from start to goal.
+        """
+        Plan route from start to goal.
 
         :param req: `geographic_msgs/GetRoutePlan`_ request message.
         :returns: `geographic_msgs/RoutePath`_ message.
@@ -185,7 +187,8 @@ class Planner(Node):
         return plan
 
     def geo_path(self, req):
-        """ Plan the shortest path between a start and a destination geopoint.
+        """
+        Plan the shortest path between a start and a destination geopoint.
 
         Unlike the 'planner' method, the 'geo_path' method can receive GeoPoints out of the graph, upon such a case, the nearest segments on the OSM map are detected,
         and the planning is carried out.
@@ -279,7 +282,8 @@ class Planner(Node):
         return result, self.graph.id, start_seg.id, goal_seg.id, dist
 
     def _planner_seg(self, start_geo_point, start_seg, goal_geo_point, goal_seg):
-        """ Plan route from start to goal. The actual search algorithm to find a path is executed here.
+        """
+        Plan route from start to goal. The actual search algorithm to find a path is executed here.
         
         :param start_geo_point: The start position.
         :type start_geo_point: geographic_msgs/GeoPoint
@@ -379,7 +383,8 @@ class Planner(Node):
         return plan, dist
 
     def _get_min_point(self, seg, lot):
-        """ Chooses between the orthogonal projection, and the start and end points
+        """
+        Chooses between the orthogonal projection, and the start and end points
             of the segment.
 
         If the given orthogonal projection lies out of the segment, the whether the start
@@ -407,7 +412,8 @@ class Planner(Node):
             return utm_seg_end
 
     def _get_segment(self, uuid):
-        """ Get the segment that corresponds to the given ID.
+        """
+        Get the segment that corresponds to the given ID.
 
         :param uuid: The id of the segment.
         :type uuid: uuid_msgs/UniqueID
@@ -421,7 +427,8 @@ class Planner(Node):
         return None
 
     def _get_segment_length(self, start_point_id, seg_id):
-        """ Searches the segment with given id with given start point in a pre-cached list
+        """
+        Searches the segment with given id with given start point in a pre-cached list
             and return its length.
 
         :param start_point_id: The id of start point of the segment.
@@ -439,7 +446,8 @@ class Planner(Node):
         return None
 
     def get_nearest_segment(self, geo_point, max_dist=500.):
-        """ Determine the nearest segment to the given point.
+        """
+        Determine the nearest segment to the given point.
 
         :param geo_point: The position.
         :type geo_point:  geographic_msgs/GeoPoint
@@ -484,7 +492,8 @@ class Planner(Node):
         return result
 
     def get_perpendicular_point2D(self, utm_start, utm_end, utm_p):
-        """ Returns the orthongal projection of point utm_p onto a line segment (utm_start -> utm_end)
+        """
+        Returns the orthongal projection of point utm_p onto a line segment (utm_start -> utm_end)
 
         :param utm_start: The starting point of the line segment.
         :type utm_start: geodesy.utm.UTMPoint
@@ -514,7 +523,8 @@ class Planner(Node):
 
     @staticmethod
     def distance2D(utm1, utm2):
-        """ Compute 2D Euclidean distance between two utm points.
+        """
+        Compute 2D Euclidean distance between two utm points.
 
         :param utm1: The first point.
         :type utm1: geodesy.utm.UTMPoint

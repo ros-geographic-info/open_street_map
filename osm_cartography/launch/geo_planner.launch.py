@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 
 from ament_index_python.packages import get_package_share_directory
@@ -26,6 +27,7 @@ def generate_launch_description():
 
     # The URL to the OSM file
     map_url = os.path.join(get_package_share_directory("osm_cartography"), "tests", "prc.osm")
+    rviz_config_path = os.path.join(get_package_share_directory("osm_cartography"), "rviz", "geo_planner.rviz")
 
     # Start map server
     osm_server = actions.Node(
@@ -34,12 +36,12 @@ def generate_launch_description():
     # Start map visualization
     viz_osm = actions.Node(
         package='osm_cartography', node_executable='viz_osm', output='screen',
-        parameters={"map_url": map_url})
+        arguments=["map_url", map_url])
 
     # Build a graph out of the OSM information
     route_network = actions.Node(
         package='route_network', node_executable='route_network', output='screen',
-        parameters={"map_url": map_url})
+        arguments=["map_url", map_url])
 
     # Provide the planning service
     plan_route = actions.Node(
@@ -57,7 +59,7 @@ def generate_launch_description():
 
     rviz2 = actions.Node(
         package='rviz2', node_executable='rviz2', output='screen',
-        arguments="-d $(find osm_cartography)/rviz/geo_planner.rviz")
+        arguments=["-d", rviz_config_path])
 
     # In RVIZ: 
     # Start Position: 2D Pose Estimate (topic: /initialpose)
