@@ -85,7 +85,7 @@ def make_osm_unique_id(namespace, el_id):
     if namespace not in {'node', 'way', 'relation'}:
         raise ValueError('invalid OSM namespace: ' + namespace)
     ns = 'http://openstreetmap.org/' + namespace + '/'
-    return UUID(uuid.uuid5(uuid.NAMESPACE_URL, ns + str(el_id)))
+    return UUID(uuid=list(uuid.uuid5(uuid.NAMESPACE_URL, ns + str(el_id)).bytes))
 
 
 def get_tag(el):
@@ -121,7 +121,8 @@ def get_osm(url, bounds):
     else:
         raise ValueError('unsupported URL: ' + url)
 
-    gmap = GeographicMap(id=UUID(uuid.uuid5(uuid.NAMESPACE_URL, url)))
+    gmap = GeographicMap(id=UUID(uuid=list(uuid.uuid5(uuid.NAMESPACE_URL, url).bytes)))
+
     xm = None
     try:
         f = open(filename, 'r')

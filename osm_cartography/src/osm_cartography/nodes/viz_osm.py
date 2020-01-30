@@ -65,7 +65,7 @@ class VizNode(Node):
         """
         super(VizNode, self).__init__("viz_osm")
 
-        self.config = None
+        map_url = self.declare_parameter("map_url").value
 
         # advertise visualization marker topic
         self.pub = self.create_publisher(MarkerArray, 'visualization_marker_array', 10)
@@ -81,6 +81,14 @@ class VizNode(Node):
         self.timer_interval = 3
         self.marker_life = self.timer_interval + 1
         self.timer = self.create_timer(self.timer_interval, self.timer_callback)
+
+        self.get_logger().info(f"Map URL: {map_url}")
+
+        req = GetGeographicMap.Request()
+        req.url = map_url
+        req.bounds = bounding_box.makeGlobal()
+
+        self.future = self.get_map.call_async(req)
 
     def get_markers(self, gmap):
         """Get markers for a GeographicMap message.
@@ -205,41 +213,27 @@ class VizNode(Node):
                 m.header.stamp = now
             self.pub.publish(self.msg)
 
-    def reconfigure(self, config, level):
-        """
-        Dynamic reconfigure callback.
-        :param config: New configuration.
-        :param level:  0x00000001 bit set if URL changed (ignored).
-        :returns: New config if valid, old one otherwise. That updates
-                  the dynamic reconfigure GUI window.
-        """
-        if self.config is None:
-            self.config = config
-        rospy.loginfo('Map URL: ' + str(config['map_url']))
-
-        try:
-            resp = self.get_map(config['map_url'], bounding_box.makeGlobal())
-        except rospy.ServiceException as e:
-            rospy.logerr("Service call failed:", str(e))
-            # ignore new config, it failed
-        else:  # get_map returned
-            if resp.success:
-                self.get_markers(resp.map)
-                self.config = config  # save new URL
-                # publish visualization markers (on a latched topic)
-                self.pub.publish(self.msg)
-            else:
-                print('get_geographic_map failed, status:', str(resp.status))
-
-        return self.config
-
 
 def main(args=None):
     rclpy.init(args=args)
 
     viznode = VizNode()
     try:
-        rclpy.spin(viznode)
+        while rclpy.ok():
+            rclpy.spin_once(viznode)
+            if viznode.future.done():
+                try:
+                    result = viznode.future.result()
+                except Exception as e:
+                    viznode.get_logger().error(f"Service call failed: {e}")
+                else:  # get_map returned
+                    if result.success:
+                        viznode.get_markers(result.map)
+                        # publish visualization markers (on a latched topic)
+                        viznode.pub.publish(self.msg)
+                    else:
+                        print('get_geographic_map failed, status:', str(result.status))
+                break
     except rclpy.exceptions.ROSInterruptException:
         pass
 

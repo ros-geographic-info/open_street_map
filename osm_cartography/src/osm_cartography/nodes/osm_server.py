@@ -78,7 +78,7 @@ class ServerNode(Node):
         else:
             resp.success = True
             resp.status = url
-            resp.map.header.stamp = self.now()
+            resp.map.header.stamp = self.get_clock().now().to_msg()
             resp.map.header.frame_id = '/map'
         return resp
 
@@ -97,4 +97,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()

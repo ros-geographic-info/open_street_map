@@ -72,7 +72,7 @@ def generate_launch_description():
          rviz_goal])
 
 
-def main(argv):
+def main():
     ld = generate_launch_description()
 
     print('Starting introspection of launch description...')
@@ -91,4 +91,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
