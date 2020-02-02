@@ -24,7 +24,7 @@ def generate_launch_description():
     """
     Launch file for visualizing OSM data
     """
-    map_url = os.path.join(get_package_share_directory("osm_cartography"), "tests", "prc.osm")
+    map_url = "file://"+os.path.join(get_package_share_directory("osm_cartography"), "tests", "prc.osm")
 
     # Start map server
     osm_server = actions.Node(

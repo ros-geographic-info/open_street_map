@@ -15,6 +15,7 @@
 import sys
 
 from launch import LaunchDescription, LaunchIntrospector, LaunchService
+from launch.actions import DeclareLaunchArgument
 from launch_ros import actions, get_default_launch_description
 
 
@@ -24,7 +25,6 @@ def generate_launch_description():
     arg: url = Uniform Resource Locator for map data
     """
     url = ""
-
     # Network graph node
     route_network = actions.Node(
         package='route_network', node_executable='route_network', output='screen',
@@ -35,7 +35,8 @@ def generate_launch_description():
         package='route_network', node_executable='viz_routes', output='screen',
         arguments=["map_url", url])
 
-    return LaunchDescription([route_network, viz_routes])
+    return LaunchDescription(
+        [DeclareLaunchArgument('url', default_value='', description="Map url"), route_network, viz_routes])
 
 
 def main():

@@ -47,7 +47,7 @@ def generate_launch_description():
     #<include file="$(find osm_cartography)/launch/viz_osm.launch" >
     #<arg name="url" value="$(arg url)" />
     #</include>
-    return LaunchDescription([osm_server, viz_osm])
+    return LaunchDescription([local_map_tf])
 
 
 def main(argv):

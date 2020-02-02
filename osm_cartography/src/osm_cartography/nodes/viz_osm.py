@@ -56,6 +56,7 @@ from visualization_msgs.msg import MarkerArray
 
 import rclpy
 from rclpy.node import Node
+from rclpy.duration import Duration
 
 
 class VizNode(Node):
@@ -79,7 +80,7 @@ class VizNode(Node):
 
         # refresh the markers every three seconds, making them last four.
         self.timer_interval = 3
-        self.marker_life = self.timer_interval + 1
+        self.marker_life = rclpy.duration.Duration(seconds=self.timer_interval + 1).to_msg()
         self.timer = self.create_timer(self.timer_interval, self.timer_callback)
 
         self.get_logger().info(f"Map URL: {map_url}")
@@ -96,6 +97,7 @@ class VizNode(Node):
         :post: self.msg = visualization markers message
         """
         self.map = gmap
+
         self.map_points = geodesy.wu_point.WuPointSet(gmap.points)
         self.msg = MarkerArray()
         self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.8))
@@ -173,7 +175,7 @@ class VizNode(Node):
             index += 1
             prev_point = None
             for mbr in feature.components:
-                wu_point = self.map_points.get(mbr.uuid)
+                wu_point = self.map_points.get(str(mbr.uuid))
                 if wu_point:  # this component is a way point
                     p = wu_point.toPointXY()
                     if prev_point:
@@ -208,7 +210,7 @@ class VizNode(Node):
         Called periodically to refresh map visualization.
         """
         if self.msg is not None:
-            now = self.now()
+            now = self.get_clock().now().to_msg()
             for m in self.msg.markers:
                 m.header.stamp = now
             self.pub.publish(self.msg)
@@ -230,10 +232,9 @@ def main(args=None):
                     if result.success:
                         viznode.get_markers(result.map)
                         # publish visualization markers (on a latched topic)
-                        viznode.pub.publish(self.msg)
+                        viznode.pub.publish(viznode.msg)
                     else:
                         print('get_geographic_map failed, status:', str(result.status))
-                break
     except rclpy.exceptions.ROSInterruptException:
         pass
 
