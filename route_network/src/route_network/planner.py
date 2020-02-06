@@ -54,9 +54,6 @@ from geographic_msgs.srv import GetRoutePlan
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
 
-import rclpy
-from rclpy.node import Node
-
 
 class PlannerError(Exception):
     """Base class for exceptions in this module."""
@@ -86,7 +83,7 @@ class Edge:
         return str(self.end) + ' ' + str(self.seg.uuid) + ' (' + str(self.h) + ')'
 
 
-class Planner(Node):
+class Planner:
     """
     :class:`Planner` plans a route through a RouteNetwork.
 
@@ -99,9 +96,8 @@ class Planner(Node):
         Collects relevant information from route network message,
         providing convenient access to the data.
         """
-        super(Planner, self).__init__("planner")
-        self._shift_to_route_within = self.declare_parameter('shift_to_route_within', 7.).value
-        self.get_logger().info("shift_to_route_within: %.2f", self._shift_to_route_within)
+        self._shift_to_route_within = 7.0  # self.declare_parameter('shift_to_route_within', 7.).value
+        # self.get_logger().info("shift_to_route_within: %.2f", self._shift_to_route_within)
 
         self.graph = graph
         self.points = geodesy.wu_point.WuPointSet(graph.points)
@@ -140,13 +136,13 @@ class Planner(Node):
         :raises: :exc:`NoPathToGoalError` if goal not reachable.
         """
         # validate request parameters
-        if req.network.uuid != self.graph.id.uuid:  # different route network?
+        if str(req.network.uuid) != str(self.graph.id.uuid):  # different route network?
             raise ValueError('invalid GetRoutePlan network: '
-                             + str(req.network.uuid))
-        start_idx = self.points.index(req.start.uuid)
+                             + str(req.network.uuid) + " "  + str(self.graph.id.uuid))
+        start_idx = self.points.index(str(req.start.uuid))
         if start_idx is None:
             raise ValueError('unknown starting point: ' + str(req.start.uuid))
-        goal_idx = self.points.index(req.goal.uuid)
+        goal_idx = self.points.index(str(req.goal.uuid))
         if goal_idx is None:
             raise ValueError('unknown goal: ' + str(req.goal.uuid))
 
@@ -161,8 +157,8 @@ class Planner(Node):
         backpath = [None for wid in range(len(self.points))]
         while True:
             if len(opened) == 0:
-                raise NoPathToGoalError('No path from ' + req.start.uuid
-                                        + ' to ' + req.goal.uuid)
+                raise NoPathToGoalError('No path from ' + str(req.start.uuid)
+                                        + ' to ' + str(req.goal.uuid))
             opened.sort()  # :todo: make search more efficient
             opened.reverse()
             h, e = opened.pop()
