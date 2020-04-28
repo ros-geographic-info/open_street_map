@@ -112,7 +112,6 @@ def get_osm(url, bounds):
     :returns: `geographic_msgs/GeographicMap`_ message (header not filled in).
     """
     # parse the URL
-    filename = ''
     if url.startswith('file:///'):
         filename = url[7:]
     elif url.startswith('package://'):
@@ -125,8 +124,8 @@ def get_osm(url, bounds):
 
     xm = None
     try:
-        f = open(filename, 'r')
-        xm = ElementTree.parse(f)
+        with open(filename, 'r') as f:
+            xm = ElementTree.parse(f)
     except IOError:
         raise ValueError('unable to read ' + str(url))
     except ElementTree.ParseError:

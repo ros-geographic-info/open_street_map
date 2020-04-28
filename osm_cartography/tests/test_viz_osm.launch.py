@@ -20,6 +20,9 @@ from launch import LaunchDescription, LaunchIntrospector, LaunchService
 from launch_ros import actions, get_default_launch_description
 
 
+OSM_CARTOGRAPHY_SHARE_DIR = get_package_share_directory('osm_cartography')
+
+
 def generate_launch_description():
     """
     Test launch file for visualizing OSM data
@@ -42,12 +45,18 @@ def generate_launch_description():
         arguments=["622150", "3362350", "0.0", "0.0", "0.0", "0.0", "map", "local_map"])
 
 
-    #<!-- launch the map visualization nodes -->
-    #include launch file
+    # launch the map visualization nodes
+    # include launch file
+    viz_osm_ld = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(OSM_CARTOGRAPHY_SHARE_DIR, '/viz_osm.launch.py')),
+            launch_arguments={'url': map_url}.items(),
+        )
+
+    
     #<include file="$(find osm_cartography)/launch/viz_osm.launch" >
     #<arg name="url" value="$(arg url)" />
     #</include>
-    return LaunchDescription([local_map_tf])
+    return LaunchDescription([local_map_tf, viz_osm_ld])
 
 
 def main(argv):

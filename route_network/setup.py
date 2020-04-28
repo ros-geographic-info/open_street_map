@@ -12,6 +12,7 @@ setup(
     version='0.2.5',
     packages=["route_network", "route_network.nodes"],
     data_files=[
+        ('share/ament_index/resource_index/packages', ['resource/' + PACKAGE_NAME]),
         ('share/' + PACKAGE_NAME, ['package.xml']),
         (os.path.join(SHARE_DIR, "launch"), glob(os.path.join("launch", "*.launch.py"))),
         (os.path.join(SHARE_DIR, "config"), glob(os.path.join("config", "*.yaml")))],
@@ -25,6 +26,7 @@ setup(
     keywords=['ROS2'],
     description='Route network graphing and path planning.',
     license='BSD',
+    tests_require=['pytest'],
     entry_points={
         'console_scripts': ['plan_route = route_network.nodes.plan_route:main',
                             'route_network = route_network.nodes.route_network:main',

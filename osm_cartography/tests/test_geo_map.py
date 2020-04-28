@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import unittest
+import uuid
 
 from geographic_msgs.msg import GeographicMap
 
@@ -17,6 +18,9 @@ suite = unittest.TestSuite()
 #    """
 #    geo_pt = GeoPoint(latitude = lat, longitude = lon, altitude = alt)
 #    return WayPoint(position = geo_pt)
+
+def msg_to_uuid(msg):
+    return uuid.UUID(bytes=bytes(msg.uuid))
 
 class TestGeoMap(unittest.TestCase):
     """Unit tests for GeoMap class.
@@ -54,7 +58,7 @@ class TestGeoMap(unittest.TestCase):
             if type(f.id.uuid) == str():  # old-style message?
                 self.assertEqual(f.id.uuid, uuids[i])
             else:
-                self.assertEqual(str(f.id), uuids[i])
+                self.assertEqual(str(msg_to_uuid(f.id)), uuids[i])
             i += 1
         self.assertEqual(i, 2)
         self.assertEqual(len(gf), 2)
