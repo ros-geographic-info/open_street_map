@@ -64,7 +64,7 @@ class VizNode(Node):
         """
         ROS node to publish visualization markers for a GeographicMap.
         """
-        super(VizNode, self).__init__("viz_osm")
+        super().__init__("viz_osm")
 
         map_url = self.declare_parameter("map_url").value
 

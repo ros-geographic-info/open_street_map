@@ -62,7 +62,7 @@ class VizPlanNode(Node):
         """
         ROS node to visualize a route plan.
         """
-        super(VizPlanNode, self).__init__("viz_plan")
+        super().__init__("viz_plan")
         self.graph = None
 
         # advertise visualization marker topic

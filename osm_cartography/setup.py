@@ -25,7 +25,7 @@ setup(
     install_requires=['setuptools',
                       'pyproj'],
     author="Jack O'Quin",
-    maintainer="Jack O'Quin",
+    maintainer="Jack O'Quin, Bence Magyar",
     keywords=['ROS2'],
     description='Geographic mapping using Open Street Map data.',
     license='BSD',

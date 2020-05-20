@@ -60,7 +60,7 @@ class RouteVizNode(Node):
         """
         ROS node to publish the route network graph for a GeographicMap.
         """
-        super(RouteVizNode, self).__init__("viz_routes")
+        super().__init__("viz_routes")
 
         self.graph = None
         self.marks = None

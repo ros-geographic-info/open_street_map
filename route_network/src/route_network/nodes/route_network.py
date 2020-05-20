@@ -108,7 +108,7 @@ class RouteNetNode(Node):
         """
         ROS node to publish the route network graph for a GeographicMap.
         """
-        super(RouteNetNode, self).__init__("route_network")
+        super().__init__("route_network")
         self.config = None
 
         # advertise visualization marker topic
@@ -159,5 +159,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    # run main function and exit
     sys.exit(main())

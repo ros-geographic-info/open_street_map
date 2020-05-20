@@ -61,7 +61,7 @@ class RoutePlannerNode(Node):
         """
         ROS node to provide a navigation plan graph for a RouteNetwork.
         """
-        super(RoutePlannerNode, self).__init__("route_planner")
+        super().__init__("route_planner")
         self.graph = None
         self.planner = None
         self._calc_idx = 0

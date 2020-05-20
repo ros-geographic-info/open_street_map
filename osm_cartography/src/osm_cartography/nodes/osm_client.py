@@ -50,7 +50,7 @@ from rclpy.node import Node
 
 class ClientNode(Node):
     def __init__(self, url):
-        super(ClientNode, self).__init__("osm_client")
+        super().__init__("osm_client")
 
         self.cli = self.create_client(GetGeographicMap, 'get_geographic_map')
 

@@ -63,7 +63,7 @@ class RvizGoalListener(Node):
     """
 
     def __init__(self):
-        super(RvizGoalListener, self).__init__("rviz_goal")
+        super().__init__("rviz_goal")
 
         self._lock = threading.RLock()
         self.graph = None

@@ -48,7 +48,7 @@ from osm_cartography import xml_map
 
 class ServerNode(Node):
     def __init__(self):
-        super(ServerNode, self).__init__("osm_server")
+        super().__init__("osm_server")
         self.srv = self.create_service(GetGeographicMap, 'get_geographic_map', self.map_server)
 
         self.resp = None
