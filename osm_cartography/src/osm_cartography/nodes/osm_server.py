@@ -38,59 +38,63 @@ Provide geographic information maps from Open Street Map on request.
 
 This is just a toy node, useful for testing.
 """
-
-from __future__ import print_function
-
-PKG_NAME = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG_NAME)
-import rospy
-
 from geographic_msgs.srv import GetGeographicMap
-from geographic_msgs.srv import GetGeographicMapResponse
+
+import rclpy
+from rclpy.node import Node
 
 from osm_cartography import xml_map
 
-class ServerNode:
-    
+
+class ServerNode(Node):
     def __init__(self):
-        rospy.init_node('osm_server')
-        self.srv = rospy.Service('get_geographic_map', GetGeographicMap,
-                                 self.map_server)
+        super().__init__("osm_server")
+        self.srv = self.create_service(GetGeographicMap, 'get_geographic_map', self.map_server)
+
         self.resp = None
 
-    def map_server(self, req):
-        """ GetGeographicMap service callback.
+    def map_server(self, req, resp):
+        """
+        GetGeographicMap service callback.
 
         :param req: Request.
+        :param resp: Response
         :returns: Response.
         """
         url = str(req.url)
         self.url = url
-        rospy.loginfo('[get_geographic_map] ' + url)
+        self.get_logger().info('[get_geographic_map] ' + url)
 
         # if empty URL, return existing map
-        if url == '' and self.resp is not None: 
+        if url == '' and self.resp is not None:
             return self.resp
 
-        self.resp = GetGeographicMapResponse()
         try:
-            self.resp.map = xml_map.get_osm(url, req.bounds)
+            resp.map = xml_map.get_osm(url, req.bounds)
         except (IOError, ValueError) as e:
-            rospy.logerr(str(e))
-            self.resp.success = False
-            self.resp.status = str(e)
+            self.get_logger().error(str(e))
+            resp.success = False
+            resp.status = str(e)
         else:
-            self.resp.success = True
-            self.resp.status = url
-            self.resp.map.header.stamp = rospy.Time()
-            self.resp.map.header.frame_id = '/map'
-        return self.resp
+            resp.success = True
+            resp.status = url
+            resp.map.header.stamp = self.get_clock().now().to_msg()
+            resp.map.header.frame_id = '/map'
+        return resp
 
-    def run(self):
-        rospy.spin()
+
+def main(args=None):
+    rclpy.init(args=args)
+    server = ServerNode()
+
+    try:
+        rclpy.spin(server)
+    except rclpy.exceptions.ROSInterruptException:
+        pass
+
+    server.destroy_node()
+    rclpy.shutdown()
+
 
 if __name__ == '__main__':
-    server = ServerNode()
-    try:
-        server.run()
-    except rospy.ROSInterruptException: pass
+    main()

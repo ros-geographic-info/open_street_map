@@ -47,10 +47,7 @@ Class for manipulating GeographicMap data.
 .. _`std_msgs/Header`: http://ros.org/doc/api/std_msgs/html/msg/Header.html
 
 """
-
-PKG = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG)
-
+import uuid
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import WayPoint
 from geometry_msgs.msg import Point
@@ -74,9 +71,9 @@ class GeoMap():
         # Initialize feature information.
         self.feature_ids = {}           # feature symbol table
         self.n_features = len(self.gmap.features)
-        for fid in xrange(self.n_features):
+        for fid in range(self.n_features):
             feat = self.gmap.features
-            self.feature_ids[feat[fid].id.uuid] = fid
+            self.feature_ids[str(uuid.UUID(bytes=bytes(feat[fid].id.uuid)))] = fid
 
     def bounds(self):
         """
@@ -151,7 +148,7 @@ class GeoMapFeatures():
         """Features vector length."""
         return len(self.gmap.gmap.features)
 
-    def next(self):
+    def __next__(self):
         """ Next matching feature.
 
         :returns: :class:`geodesy.wu_point.WuPoint` object for next point

@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-
-PKG='osm_cartography'
-import roslib; roslib.load_manifest(PKG)
-
 import unittest
 
 from geodesy import bounding_box
 
 from osm_cartography import xml_map
+
+
+suite = unittest.TestSuite()
 
 class TestXmlMap(unittest.TestCase):
     """Unit tests for OSM XML map parser.
@@ -43,5 +42,4 @@ class TestXmlMap(unittest.TestCase):
                           bounding_box.makeGlobal())
 
 if __name__ == '__main__':
-    import rosunit
-    rosunit.unitrun(PKG, 'test_xml_map_py', TestXmlMap) 
+    unittest.TextTestRunner().run(suite)

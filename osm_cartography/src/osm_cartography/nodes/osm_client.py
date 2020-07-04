@@ -38,44 +38,72 @@ Request geographic information maps from Open Street Map server.
 
 This is just a toy node, useful for testing.
 """
-
-from __future__ import print_function
-
-PKG_NAME = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG_NAME)
-import rospy
-
 import sys
 
 from geodesy import bounding_box
 
 from geographic_msgs.srv import GetGeographicMap
 
-def client_node(url):
+import rclpy
+from rclpy.node import Node
 
-    rospy.init_node('osm_client')
-    rospy.wait_for_service('get_geographic_map')
 
-    try:
-        get_map = rospy.ServiceProxy('get_geographic_map', GetGeographicMap)
-        resp = get_map(url, bounding_box.makeGlobal())
-        if resp.success:
-            print(resp.map)
-        else:
-            print('get_geographic_map failed, status: ', str(resp.status))
+class ClientNode(Node):
+    def __init__(self, url):
+        super().__init__("osm_client")
 
-    except rospy.ServiceException, e:
-        print("Service call failed: " + str(e))
+        self.cli = self.create_client(GetGeographicMap, 'get_geographic_map')
 
-if __name__ == '__main__':
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+
+        self.req = self.cli.Request(url, bounding_box.makeGlobal())
+
+        try:
+            get_map = rclpy.ServiceProxy('get_geographic_map', GetGeographicMap)
+            resp = get_map(url, bounding_box.makeGlobal())
+            if resp.success:
+                print(resp.map)
+            else:
+                print('get_geographic_map failed, status: ', str(resp.status))
+
+        except rclpy.ServiceException as e:
+            print("Service call failed: " + str(e))
+
+    def send_request(self):
+        self.future = self.cli.call_async(self.req)
+
+
+def main(args=None):
+    rclpy.init(args=args)
 
     url = ''
-    if len(sys.argv) == 2:
-        url = sys.argv[1]
+    if len(args) == 2:
+        url = args[1]
     else:
         print('usage: osm_client <map_URL>')
         sys.exit(-9)
 
     try:
-        client_node(url)
-    except rospy.ROSInterruptException: pass
+        client = ClientNode(url)
+        client.send_request()
+    except rclpy.exceptions.ROSInterruptException:
+        pass
+
+    while rclpy.ok():
+        rclpy.spin_once(client)
+        if client.future.done():
+            try:
+                response = client.future.result()
+                print(response)
+            except Exception as e:
+                client.get_logger().info(
+                    'Service call failed %r' % (e,))
+            break
+
+    client.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

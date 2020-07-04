@@ -38,10 +38,6 @@ Plan the shortest route through a geographic information network.
 
 :todo: add server for local GetPlan service.
 """
-
-PKG_NAME = 'route_network'
-import roslib; roslib.load_manifest(PKG_NAME)
-import rospy
 import sys
 
 from route_network import planner
@@ -53,35 +49,37 @@ from geographic_msgs.msg import RouteNetwork
 from geographic_msgs.msg import RoutePath
 
 from geographic_msgs.srv import GetRoutePlan
-from geographic_msgs.srv import GetRoutePlanResponse
 from geographic_msgs.srv import GetGeoPath
-from geographic_msgs.srv import GetGeoPathResponse
-
 import geodesy
+import rclpy
+from rclpy.node import Node
 
-class RoutePlannerNode():
+
+class RoutePlannerNode(Node):
 
     def __init__(self):
-        """ROS node to provide a navigation plan graph for a RouteNetwork.
         """
-        rospy.init_node('route_planner')
+        ROS node to provide a navigation plan graph for a RouteNetwork.
+        """
+        super().__init__("route_planner")
         self.graph = None
         self.planner = None
         self._calc_idx = 0
 
         # advertise route planning service
-        self.srv = rospy.Service('get_route_plan', GetRoutePlan,
-                                 self.route_planner)
+        self.srv = self.create_service(GetRoutePlan, 'get_route_plan', self.route_planner)
+
         # advertise geographic route planning service
-        self.srv_geo = rospy.Service('get_geo_path', GetGeoPath, self.geo_path_planner)
+        self.srv_geo = self.create_service(GetGeoPath, 'get_geo_path', self.geo_path_planner)
+
         self.resp = None
 
         # subscribe to route network
-        self.sub = rospy.Subscriber('route_network', RouteNetwork,
-                                    self.graph_callback)
+        self.sub = self.create_subscription(RouteNetwork, 'route_network', self.graph_callback, 10)
 
     def graph_callback(self, graph):
-        """ RouteNetwork graph message callback.
+        """
+        RouteNetwork graph message callback.
         :param graph: RouteNetwork message
 
         :post: graph information saved in self.graph and self.planner
@@ -89,34 +87,34 @@ class RoutePlannerNode():
         self.graph = graph
         self.planner = planner.Planner(graph)
 
-    def route_planner(self, req):
+    def route_planner(self, req, resp):
         """
         :param req: GetRoutePlanRequest message
         :returns: GetRoutePlanResponse message
         """
-        rospy.loginfo('GetRoutePlan: ' + str(req))
-        self.resp = GetRoutePlanResponse(plan = RoutePath())
+        self.get_logger().info('GetRoutePlan: ' + str(req))
         if self.graph is None:
-            self.resp.success = False
-            self.resp.status = 'no RouteNetwork available for GetRoutePlan'
-            rospy.logerr(self.resp.status)
-            return self.resp
+            resp.success = False
+            resp.status = 'no RouteNetwork available for GetRoutePlan'
+            self.get_logger().error(resp.status)
+            return resp
 
         try:
             # plan a path to the goal
-            self.resp.plan = self.planner.planner(req)
+            resp.plan = self.planner.planner(req)
         except (ValueError, planner.NoPathToGoalError) as e:
-            self.resp.success = False
-            self.resp.status = str(e)
-            rospy.logerr('route planner exception: ' + str(e))
+            resp.success = False
+            resp.status = str(e)
+            self.get_logger().error('route planner exception: ' + str(e))
         else:
-            self.resp.success = True
-            self.resp.plan.header.stamp = rospy.Time.now()
-            self.resp.plan.header.frame_id = self.graph.header.frame_id
-        return self.resp
+            resp.success = True
+            resp.plan.header.stamp = self.now()
+            resp.plan.header.frame_id = self.graph.header.frame_id
+        return resp
 
-    def geo_path_planner(self, req):
-        """ Processes the planning request.
+    def geo_path_planner(self, req, resp):
+        """
+        Processes the planning request.
 
         If the planning service fails, self.resp.success is set to False.
 
@@ -126,44 +124,53 @@ class RoutePlannerNode():
         :return: The plan from start to goal position.
         :rtype: geographic_msgs/GetGeoPathResponse 
         """
-        rospy.loginfo('GetGeoPath: ' + str(req))
+        self.get_logger().info('GetGeoPath: ' + str(req))
         self._calc_idx += 1
-        self.resp = GetGeoPathResponse()
-        self.resp.plan.header.seq = self._calc_idx
-        self.resp.plan.header.stamp = rospy.Time.now()
+        resp.plan.header.seq = self._calc_idx
+        resp.plan.header.stamp = self.now()
         if self.graph is None:
-            self.resp.success = False
-            self.resp.status = 'No RouteNetwork avialable for GetGeoPath.'
-            rospy.logerr(self.resp.status)
-            return self.resp
+            resp.success = False
+            resp.status = 'No RouteNetwork available for GetGeoPath.'
+            self.get_logger().error(self.resp.status)
+            return resp
 
         try:
             planner_result = self.planner.geo_path(req)
-            
-            self.resp.plan.poses = [GeoPoseStamped(pose=GeoPose(position=point)) for point in planner_result[0]]
-            self.resp.network = planner_result[1]
-            self.resp.start_seg = planner_result[2]
-            self.resp.goal_seg = planner_result[3]
-            self.resp.distance = planner_result[4]
-            self.resp.success = not (self.resp.distance == -1)
-            if not self.resp.success:
-                self.resp.status = 'No route found from :\n' + str(req.start) + ' to:\n' + str(req.goal)
-            rospy.loginfo('GetGeoPath result: ' + str(self.resp))
-        except (ValueError) as e:
-            self.resp.success = False
-            self.resp.status = str(e)
-            self.resp.network = self.graph.id
-            self.resp.distance = -1
-            rospy.logerr('Route planner exception: ' + str(e))
 
-        return self.resp
+            resp.plan.poses = [GeoPoseStamped(pose=GeoPose(position=point)) for point in
+                               planner_result[0]]
+            resp.network = planner_result[1]
+            resp.start_seg = planner_result[2]
+            resp.goal_seg = planner_result[3]
+            resp.distance = planner_result[4]
+            resp.success = not (resp.distance == -1)
+            if not resp.success:
+                resp.status = 'No route found from :\n' + str(req.start) + ' to:\n' + str(
+                    req.goal)
+            self.get_logger().info('GetGeoPath result: ' + str(self.resp))
+        except ValueError as e:
+            resp.success = False
+            resp.status = str(e)
+            resp.network = self.graph.id
+            resp.distance = -1
+            self.get_logger().error('Route planner exception: ' + str(e))
 
-def main():
+        return resp
+
+
+def main(args=None):
+    rclpy.init(args=args)
     node_class = RoutePlannerNode()
+
     try:
-        rospy.spin()            # wait for messages
-    except rospy.ROSInterruptException: pass
+        rclpy.spin(node_class)  # wait for messages
+    except rclpy.exceptions.ROSInterruptException:
+        pass
+
+    node_class.destroy_node()
+    rclpy.shutdown()
     return 0
+
 
 if __name__ == '__main__':
     # run main function and exit

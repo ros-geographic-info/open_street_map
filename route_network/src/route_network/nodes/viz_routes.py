@@ -37,12 +37,10 @@
 Create route network messages for geographic information maps.
 """
 
-PKG_NAME = 'route_network'
-import roslib; roslib.load_manifest(PKG_NAME)
-import rospy
+import rclpy
+from rclpy.node import Node
 
 import sys
-import itertools
 import geodesy.props
 import geodesy.wu_point
 
@@ -55,27 +53,28 @@ from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
-class RouteVizNode():
+
+class RouteVizNode(Node):
 
     def __init__(self):
-        """ROS node to publish the route network graph for a GeographicMap.
         """
-        rospy.init_node('viz_routes')
+        ROS node to publish the route network graph for a GeographicMap.
+        """
+        super().__init__("viz_routes")
+
         self.graph = None
         self.marks = None
 
         # advertise visualization marker topic
-        self.pub = rospy.Publisher('visualization_marker_array',
-                                   MarkerArray, latch=True, queue_size=10)
+        self.pub = self.create_publisher(MarkerArray, 'visualization_marker_array', 10)
 
         # refresh the markers every three seconds, making them last four.
-        self.timer_interval = rospy.Duration(3)
-        self.marker_life = self.timer_interval + rospy.Duration(1)
-        rospy.Timer(self.timer_interval, self.timer_callback)
+        self.timer_interval = 3
+        self.marker_life = self.timer_interval + 1
+        self.timer = self.create_timer(self.timer_interval, self.timer_callback)
 
         # subscribe to route network
-        self.sub = rospy.Subscriber('route_network', RouteNetwork,
-                                    self.graph_callback)
+        self.sub = self.create_subscription(RouteNetwork, 'route_network', self.graph_callback, 10)
 
     def graph_callback(self, graph):
         """Create visualization markers from a RouteNetwork graph.
@@ -102,16 +101,16 @@ class RouteVizNode():
         index = 0
         for segment in self.graph.segments:
             color = color2
-            if geodesy.props.match(segment, set(['oneway'])):
+            if geodesy.props.match(segment, {'oneway'}):
                 color = color1
-            marker = Marker(header = self.graph.header,
-                            ns = 'route_segments',
-                            id = index,
-                            type = Marker.LINE_STRIP,
-                            action = Marker.ADD,
-                            scale = Vector3(x=2.),
-                            color = color,
-                            lifetime = self.marker_life)
+            marker = Marker(header=self.graph.header,
+                            ns='route_segments',
+                            id=index,
+                            type=Marker.LINE_STRIP,
+                            action=Marker.ADD,
+                            scale=Vector3(x=2.),
+                            color=color,
+                            lifetime=self.marker_life)
             index += 1
             marker.points.append(self.points[segment.start.uuid].toPointXY())
             marker.points.append(self.points[segment.end.uuid].toPointXY())
@@ -124,33 +123,41 @@ class RouteVizNode():
         """
         index = 0
         for wp in self.points:
-            marker = Marker(header = self.graph.header,
-                            ns = "route_waypoints",
-                            id = index,
-                            type = Marker.CYLINDER,
-                            action = Marker.ADD,
-                            scale = Vector3(x=2., y=2., z=0.2),
-                            color = color,
-                            lifetime = self.marker_life)
+            marker = Marker(header=self.graph.header,
+                            ns="route_waypoints",
+                            id=index,
+                            type=Marker.CYLINDER,
+                            action=Marker.ADD,
+                            scale=Vector3(x=2., y=2., z=0.2),
+                            color=color,
+                            lifetime=self.marker_life)
             index += 1
             # use easting and northing coordinates (ignoring altitude)
             marker.pose.position = wp.toPointXY()
             marker.pose.orientation = Quaternion(x=0., y=0., z=0., w=1.)
             self.marks.markers.append(marker)
 
-    def timer_callback(self, event):
+    def timer_callback(self):
         """ Called periodically to refresh route network visualization. """
         if self.marks is not None:
-            now = rospy.Time.now()
+            now = self.now()
             for m in self.marks.markers:
                 m.header.stamp = now
             self.pub.publish(self.marks)
-    
-def main():
+
+
+def main(args=None):
+    rclpy.init(args=args)
     node_class = RouteVizNode()
+
     try:
-        rospy.spin()            # wait for messages
-    except rospy.ROSInterruptException: pass
+        rclpy.spin(node_class)  # wait for messages
+    except rclpy.exceptions.ROSInterruptException:
+        pass
+
+    node_class.destroy_node()
+    rclpy.shutdown()
+
 
 if __name__ == '__main__':
     # run main function and exit

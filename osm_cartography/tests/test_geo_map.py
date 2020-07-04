@@ -1,14 +1,6 @@
 #!/usr/bin/env python
-
-PKG='osm_cartography'
-import roslib; roslib.load_manifest(PKG)
-
 import unittest
-
-try:
-    import unique_id
-except ImportError:
-    pass
+import uuid
 
 from geographic_msgs.msg import GeographicMap
 
@@ -16,13 +8,19 @@ from geodesy import bounding_box
 from osm_cartography.geo_map import *
 from osm_cartography import xml_map
 
-#def fromLatLong(lat, lon, alt=float('nan')):
+suite = unittest.TestSuite()
+
+
+# def fromLatLong(lat, lon, alt=float('nan')):
 #    """Generate WayPoint from latitude, longitude and (optional) altitude.
 #
 #    :returns: minimal WayPoint object just for test cases.
 #    """
 #    geo_pt = GeoPoint(latitude = lat, longitude = lon, altitude = alt)
 #    return WayPoint(position = geo_pt)
+
+def msg_to_uuid(msg):
+    return uuid.UUID(bytes=bytes(msg.uuid))
 
 class TestGeoMap(unittest.TestCase):
     """Unit tests for GeoMap class.
@@ -57,14 +55,14 @@ class TestGeoMap(unittest.TestCase):
         gf = GeoMapFeatures(gm)
         i = 0
         for f in gf:
-            if type(f.id.uuid) == str(): # old-style message?
+            if type(f.id.uuid) == str():  # old-style message?
                 self.assertEqual(f.id.uuid, uuids[i])
             else:
-                self.assertEqual(unique_id.toHexString(f.id), uuids[i])
+                self.assertEqual(str(msg_to_uuid(f.id)), uuids[i])
             i += 1
         self.assertEqual(i, 2)
         self.assertEqual(len(gf), 2)
 
+
 if __name__ == '__main__':
-    import rosunit
-    rosunit.unitrun(PKG, 'test_geo_map_py', TestGeoMap) 
+    unittest.TextTestRunner().run(suite)

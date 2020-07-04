@@ -36,10 +36,8 @@
 """
 Visualize route plan for geographic map.
 """
-
-PKG_NAME = 'route_network'
-import roslib; roslib.load_manifest(PKG_NAME)
-import rospy
+import rclpy
+from rclpy.node import Node
 
 import sys
 import random
@@ -55,33 +53,31 @@ from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
-try:
-    from geographic_msgs.msg import UniqueID
-except ImportError:
-    from uuid_msgs.msg import UniqueID
+from unique_identifier_msgs.msg import UUID
 
-class VizPlanNode():
+
+class VizPlanNode(Node):
 
     def __init__(self):
-        """ROS node to visualize a route plan.
         """
-        rospy.init_node('viz_plan')
+        ROS node to visualize a route plan.
+        """
+        super().__init__("viz_plan")
         self.graph = None
 
         # advertise visualization marker topic
-        self.pub = rospy.Publisher('visualization_marker_array',
-                                   MarkerArray, latch=True, queue_size=10)
+        self.pub = self.create_publisher(MarkerArray, 'visualization_marker_array', 10)
 
-        rospy.wait_for_service('get_geographic_map')
-        self.get_plan = rospy.ServiceProxy('get_route_plan', GetRoutePlan)
+        self.get_plan  = self.create_client(GetRoutePlan, 'get_route_plan')
+        while not self.get_plan .wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
 
         # subscribe to route network
-        self.sub = rospy.Subscriber('route_network', RouteNetwork,
-                                    self.graph_callback)
+        self.sub = self.create_subscription(RouteNetwork, 'route_network', self.graph_callback, 10)
 
-        self.timer_interval = rospy.Duration(4)
-        self.marker_life = self.timer_interval + rospy.Duration(1)
-        rospy.Timer(self.timer_interval, self.timer_callback)
+        self.timer_interval = 4
+        self.marker_life = self.timer_interval + 1
+        self.timer = self.create_timer(self.timer_interval, self.timer_callback)
 
     def graph_callback(self, graph):
         """Handle RouteNetwork message.
@@ -92,54 +88,56 @@ class VizPlanNode():
         :post: self.points = visualization markers message.
         """
         self.points = geodesy.wu_point.WuPointSet(graph.points)
-        self.segment_ids = {}   # segments symbol table
-        for sid in xrange(len(graph.segments)):
+        self.segment_ids = {}  # segments symbol table
+        for sid in range(len(graph.segments)):
             self.segment_ids[graph.segments[sid].id.uuid] = sid
         self.graph = graph
 
-    def timer_callback(self, event):
-        """ Called periodically. """
+    def timer_callback(self):
+        """
+        Called periodically.
+        """
         if self.graph is None:
-            print 'still waiting for graph'
+            print('still waiting for graph')
             return
 
         # select two different way points at random
-        idx0, idx1 = random.sample(xrange(len(self.graph.points)), 2)
+        idx0, idx1 = random.sample(range(len(self.graph.points)), 2)
         start = self.graph.points[idx0].id.uuid
         goal = self.graph.points[idx1].id.uuid
-        rospy.loginfo('plan from ' + start + ' to ' + goal)
+        sefl.get_logger().info('plan from ' + start + ' to ' + goal)
 
         try:
             resp = self.get_plan(self.graph.id,
-                                 UniqueID(uuid=start),
-                                 UniqueID(uuid=goal))
-        except rospy.ServiceException as e:
-            rospy.logerr("Service call failed: " + str(e))
-        else:                           # get_map returned
+                                 UUID(uuid=start),
+                                 UUID(uuid=goal))
+        except rclpy.ServiceException as e:
+            self.get_logger().error("Service call failed: " + str(e))
+        else:  # get_map returned
             if resp.success:
                 self.mark_plan(resp.plan)
             else:
-                rospy.logerr('get_route_plan failed, status: '
-                             + str(resp.status))
+                self.get_logger().error('get_route_plan failed, status: ' + str(resp.status))
 
     def mark_plan(self, plan):
-        """Publish visualization markers for a RoutePath.
+        """
+        Publish visualization markers for a RoutePath.
 
         :param plan: RoutePath message
         """
         marks = MarkerArray()
         hdr = self.graph.header
-        hdr.stamp = rospy.Time.now()
+        hdr.stamp = self.now()
         index = 0
         for seg_msg in plan.segments:
-            marker = Marker(header = hdr,
-                            ns = 'plan_segments',
-                            id = index,
-                            type = Marker.LINE_STRIP,
-                            action = Marker.ADD,
-                            scale = Vector3(x=4.0),
-                            color = ColorRGBA(r=1.0, g=1.0, b=1.0, a=0.8),
-                            lifetime = self.marker_life)
+            marker = Marker(header=hdr,
+                            ns='plan_segments',
+                            id=index,
+                            type=Marker.LINE_STRIP,
+                            action=Marker.ADD,
+                            scale=Vector3(x=4.0),
+                            color=ColorRGBA(r=1.0, g=1.0, b=1.0, a=0.8),
+                            lifetime=self.marker_life)
             index += 1
             segment = self.graph.segments[self.segment_ids[seg_msg.uuid]]
             marker.points.append(self.points[segment.start.uuid].toPointXY())
@@ -147,12 +145,20 @@ class VizPlanNode():
             marks.markers.append(marker)
 
         self.pub.publish(marks)
-    
-def main():
+
+
+def main(args=None):
+    rclpy.init(args=args)
     node_class = VizPlanNode()
+
     try:
-        rospy.spin()            # wait for messages
-    except rospy.ROSInterruptException: pass
+        rclpy.spin(node_class)  # wait for messages
+    except rclpy.exceptions.ROSInterruptException:
+        pass
+
+    node_class.destroy_node()
+    rclpy.shutdown()
+
 
 if __name__ == '__main__':
     # run main function and exit
