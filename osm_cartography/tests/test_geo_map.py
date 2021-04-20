@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-
-PKG = "osm_cartography"
-import roslib
-
-roslib.load_manifest(PKG)
+#!/usr/bin/env python3
 
 import unittest
 
