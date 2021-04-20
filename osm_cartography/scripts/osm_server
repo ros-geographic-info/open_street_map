@@ -39,7 +39,6 @@ Provide geographic information maps from Open Street Map on request.
 This is just a toy node, useful for testing.
 """
 
-from __future__ import print_function
 
 PKG_NAME = 'osm_cartography'
 import roslib; roslib.load_manifest(PKG_NAME)
@@ -75,7 +74,7 @@ class ServerNode:
         self.resp = GetGeographicMapResponse()
         try:
             self.resp.map = xml_map.get_osm(url, req.bounds)
-        except (IOError, ValueError) as e:
+        except (OSError, ValueError) as e:
             rospy.logerr(str(e))
             self.resp.success = False
             self.resp.status = str(e)
