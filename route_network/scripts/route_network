@@ -65,14 +65,14 @@ def is_oneway(feature):
     """ One-way route predicate.
     :returns: True if feature is one way.
     """
-    return geodesy.props.match(feature, set(['oneway']))
+    return geodesy.props.match(feature, {'oneway'})
 
 def is_route(feature):
     """ Drivable feature predicate.
     :returns: True if feature is drivable.
     """
     return geodesy.props.match(feature,
-                               set(['bridge', 'highway', 'tunnel']))
+                               {'bridge', 'highway', 'tunnel'})
 
 # URL, unique to this package
 PKG_URL = 'http://ros.org/wiki/' + PKG_NAME

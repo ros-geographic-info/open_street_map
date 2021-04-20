@@ -256,7 +256,7 @@ class RvizGoalListener():
             marker = Marker(header = hdr,
                             ns = 'goal distance',
                             id = index,
-                            text = '{0:.2f}m'.format(distance),
+                            text = '{:.2f}m'.format(distance),
                             type = Marker.TEXT_VIEW_FACING,
                             action = Marker.ADD,
                             scale = Vector3(x=6.0, y=4., z=10.0),

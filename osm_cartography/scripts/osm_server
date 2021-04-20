@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Software License Agreement (BSD License)
 #
 # Copyright (C) 2012, Jack O'Quin
@@ -40,8 +40,6 @@ This is just a toy node, useful for testing.
 """
 
 
-PKG_NAME = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG_NAME)
 import rospy
 
 from geographic_msgs.srv import GetGeographicMap
@@ -49,26 +47,27 @@ from geographic_msgs.srv import GetGeographicMapResponse
 
 from osm_cartography import xml_map
 
+
 class ServerNode:
-    
     def __init__(self):
-        rospy.init_node('osm_server')
-        self.srv = rospy.Service('get_geographic_map', GetGeographicMap,
-                                 self.map_server)
+        rospy.init_node("osm_server")
+        self.srv = rospy.Service(
+            "get_geographic_map", GetGeographicMap, self.map_server
+        )
         self.resp = None
 
     def map_server(self, req):
-        """ GetGeographicMap service callback.
+        """GetGeographicMap service callback.
 
         :param req: Request.
         :returns: Response.
         """
         url = str(req.url)
         self.url = url
-        rospy.loginfo('[get_geographic_map] ' + url)
+        rospy.loginfo("[get_geographic_map] " + url)
 
         # if empty URL, return existing map
-        if url == '' and self.resp is not None: 
+        if url == "" and self.resp is not None:
             return self.resp
 
         self.resp = GetGeographicMapResponse()
@@ -82,14 +81,16 @@ class ServerNode:
             self.resp.success = True
             self.resp.status = url
             self.resp.map.header.stamp = rospy.Time()
-            self.resp.map.header.frame_id = '/map'
+            self.resp.map.header.frame_id = "/map"
         return self.resp
 
     def run(self):
         rospy.spin()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     server = ServerNode()
     try:
         server.run()
-    except rospy.ROSInterruptException: pass
+    except rospy.ROSInterruptException:
+        pass
