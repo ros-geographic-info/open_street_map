@@ -71,4 +71,4 @@ class TestGeoMap(unittest.TestCase):
 if __name__ == "__main__":
     import rosunit
 
-    rosunit.unitrun(PKG, "test_geo_map_py", TestGeoMap)
+    rosunit.unitrun("osm_cartography", "test_geo_map_py", TestGeoMap)

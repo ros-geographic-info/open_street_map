@@ -77,7 +77,7 @@ class GeoMap:
         # Initialize feature information.
         self.feature_ids = {}  # feature symbol table
         self.n_features = len(self.gmap.features)
-        for fid in xrange(self.n_features):
+        for fid in range(self.n_features):
             feat = self.gmap.features
             self.feature_ids[feat[fid].id.uuid] = fid
 
@@ -155,7 +155,7 @@ class GeoMapFeatures:
         """Features vector length."""
         return len(self.gmap.gmap.features)
 
-    def next(self):
+    def __next__(self):
         """Next matching feature.
 
         :returns: :class:`geodesy.wu_point.WuPoint` object for next point

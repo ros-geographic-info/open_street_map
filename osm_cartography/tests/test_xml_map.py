@@ -54,4 +54,4 @@ class TestXmlMap(unittest.TestCase):
 if __name__ == "__main__":
     import rosunit
 
-    rosunit.unitrun(PKG, "test_xml_map_py", TestXmlMap)
+    rosunit.unitrun("osm_cartography", "test_xml_map_py", TestXmlMap)
