@@ -1,7 +1,7 @@
 <package format="2">
 
   <name>test_osm</name>
-  <version>0.2.5</version>
+  <version>0.3.0</version>
   <description>
      These are regression tests for the osm_cartography and
      route_network packages. They are packaged separately to avoid
