@@ -48,14 +48,17 @@ Class for manipulating GeographicMap data.
 
 """
 
-PKG = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG)
+PKG = "osm_cartography"
+import roslib
+
+roslib.load_manifest(PKG)
 
 from geographic_msgs.msg import GeographicMap
 from geographic_msgs.msg import WayPoint
 from geometry_msgs.msg import Point
 
-class GeoMap():
+
+class GeoMap:
     """
     :class:`GeoMap` provides an internal
     `geographic_msgs/GeographicMap`_ representation.
@@ -72,9 +75,9 @@ class GeoMap():
         self.gmap = gmap
 
         # Initialize feature information.
-        self.feature_ids = {}           # feature symbol table
+        self.feature_ids = {}  # feature symbol table
         self.n_features = len(self.gmap.features)
-        for fid in xrange(self.n_features):
+        for fid in range(self.n_features):
             feat = self.gmap.features
             self.feature_ids[feat[fid].id.uuid] = fid
 
@@ -86,11 +89,12 @@ class GeoMap():
 
     def header(self):
         """
-        :returns: `std_msgs/Header`_ from the `geographic_msgs/GeographicMap`_ message. 
+        :returns: `std_msgs/Header`_ from the `geographic_msgs/GeographicMap`_ message.
         """
         return self.gmap.header
 
-class GeoMapFeatures():
+
+class GeoMapFeatures:
     """
     :class:`GeoMapFeatures` provides a filtering iterator for the
     features in a :class:`osm_cartography.geo_map.GeoMap`.
@@ -104,20 +108,20 @@ class GeoMapFeatures():
        :returns: The number of points in the set.
 
     .. describe:: features[uuid]
- 
+
        :returns: The point with key *uuid*.  Raises a :exc:`KeyError`
                  if *uuid* is not in the set.
- 
+
     .. describe:: uuid in features
- 
+
        :returns: ``True`` if *features* has a key *uuid*, else ``False``.
- 
+
     .. describe:: uuid not in features
- 
+
        Equivalent to ``not uuid in features``.
- 
+
     .. describe:: iter(features)
- 
+
        :returns: An iterator over all the features.  This is a
                  shortcut for :meth:`iterkeys`.
 
@@ -151,8 +155,8 @@ class GeoMapFeatures():
         """Features vector length."""
         return len(self.gmap.gmap.features)
 
-    def next(self):
-        """ Next matching feature.
+    def __next__(self):
+        """Next matching feature.
 
         :returns: :class:`geodesy.wu_point.WuPoint` object for next point
         :raises: :exc:`StopIteration` when finished.

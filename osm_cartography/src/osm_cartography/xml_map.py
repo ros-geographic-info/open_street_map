@@ -43,12 +43,13 @@ Generate geographic information maps based on Open Street Map XML data.
 
 """
 
-from __future__ import print_function
 
 from xml.etree import ElementTree
 
-PKG_NAME = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG_NAME)
+PKG_NAME = "osm_cartography"
+import roslib
+
+roslib.load_manifest(PKG_NAME)
 
 import unique_id
 from geodesy import bounding_box
@@ -63,15 +64,17 @@ try:
 except ImportError:
     from uuid_msgs.msg import UniqueID
 
+
 def get_required_attribute(el, key):
-    """ Get attribute key of element *el*.
+    """Get attribute key of element *el*.
 
     :raises:  :exc:`ValueError` if key not found
     """
     val = el.get(key)
     if val == None:
-        raise ValueError('required attribute missing: ' + key)
+        raise ValueError("required attribute missing: " + key)
     return val
+
 
 def makeOsmUniqueID(namespace, el_id):
     """Make UniqueID message for *el_id* number in OSM sub-namespace *namespace*.
@@ -84,21 +87,23 @@ def makeOsmUniqueID(namespace, el_id):
     :returns: corresponding `geographic_msgs/UniqueID`_ message.
     :raises:  :exc:`ValueError`
     """
-    if not namespace in set(['node', 'way', 'relation']):
-        raise ValueError('invalid OSM namespace: ' + namespace)
-    ns = 'http://openstreetmap.org/' + namespace + '/'
+    if not namespace in {"node", "way", "relation"}:
+        raise ValueError("invalid OSM namespace: " + namespace)
+    ns = "http://openstreetmap.org/" + namespace + "/"
     return unique_id.toMsg(unique_id.fromURL(ns + str(el_id)))
+
 
 def get_tag(el):
     """ :returns: `geographic_msgs/KeyValue`_ message for `<tag>` *el* if any, None otherwise. """
     pair = None
-    key = el.get('k')
+    key = el.get("k")
     if key != None:
         pair = KeyValue()
         pair.key = key
-        pair.value = get_required_attribute(el, 'v')
+        pair.value = get_required_attribute(el, "v")
         return pair
-    
+
+
 def get_osm(url, bounds):
     """Get `geographic_msgs/GeographicMap`_ from Open Street Map XML data.
 
@@ -110,49 +115,49 @@ def get_osm(url, bounds):
     :returns: `geographic_msgs/GeographicMap`_ message (header not filled in).
     """
     # parse the URL
-    filename = ''
-    if url.startswith('file:///'):
+    filename = ""
+    if url.startswith("file:///"):
         filename = url[7:]
-    elif url.startswith('package://'):
-        pkg_name, slash, pkg_path = url[10:].partition('/')
+    elif url.startswith("package://"):
+        pkg_name, slash, pkg_path = url[10:].partition("/")
         pkg_dir = roslib.packages.get_pkg_dir(pkg_name)
-        filename = pkg_dir + '/' + pkg_path
+        filename = pkg_dir + "/" + pkg_path
     else:
-        raise ValueError('unsupported URL: ' + url)
+        raise ValueError("unsupported URL: " + url)
 
-    gmap = GeographicMap(id = unique_id.toMsg(unique_id.fromURL(url)))
+    gmap = GeographicMap(id=unique_id.toMsg(unique_id.fromURL(url)))
     xm = None
     try:
-        f = open(filename, 'r')
+        f = open(filename)
         xm = ElementTree.parse(f)
-    except IOError:
-        raise ValueError('unable to read ' + str(url))
+    except OSError:
+        raise ValueError("unable to read " + str(url))
     except ElementTree.ParseError:
-        raise ValueError('XML parse failed for ' + str(url))
+        raise ValueError("XML parse failed for " + str(url))
     osm = xm.getroot()
 
     # get map bounds
-    for el in osm.iterfind('bounds'):
-        minlat = float(get_required_attribute(el, 'minlat'))
-        minlon = float(get_required_attribute(el, 'minlon'))
-        maxlat = float(get_required_attribute(el, 'maxlat'))
-        maxlon = float(get_required_attribute(el, 'maxlon'))
+    for el in osm.iterfind("bounds"):
+        minlat = float(get_required_attribute(el, "minlat"))
+        minlon = float(get_required_attribute(el, "minlon"))
+        maxlat = float(get_required_attribute(el, "maxlat"))
+        maxlon = float(get_required_attribute(el, "maxlon"))
         gmap.bounds = bounding_box.makeBounds2D(minlat, minlon, maxlat, maxlon)
 
     # get map way-point nodes
-    for el in osm.iterfind('node'):
+    for el in osm.iterfind("node"):
 
         way = WayPoint()
-        el_id = el.get('id')
+        el_id = el.get("id")
         if el_id is None:
-            raise ValueError('node id missing')
-        way.id = makeOsmUniqueID('node', el_id)
+            raise ValueError("node id missing")
+        way.id = makeOsmUniqueID("node", el_id)
 
-        way.position.latitude = float(get_required_attribute(el, 'lat'))
-        way.position.longitude = float(get_required_attribute(el, 'lon'))
-        way.position.altitude = float(el.get('ele', float('nan')))
+        way.position.latitude = float(get_required_attribute(el, "lat"))
+        way.position.longitude = float(get_required_attribute(el, "lon"))
+        way.position.altitude = float(el.get("ele", float("nan")))
 
-        for tag_list in el.iterfind('tag'):
+        for tag_list in el.iterfind("tag"):
             kv = get_tag(tag_list)
             if kv != None:
                 way.props.append(kv)
@@ -160,19 +165,19 @@ def get_osm(url, bounds):
         gmap.points.append(way)
 
     # get map paths
-    for el in osm.iterfind('way'):
+    for el in osm.iterfind("way"):
 
         feature = MapFeature()
-        el_id = el.get('id')
+        el_id = el.get("id")
         if el_id is None:
-            raise ValueError('way id missing')
-        feature.id = makeOsmUniqueID('way', el_id)
+            raise ValueError("way id missing")
+        feature.id = makeOsmUniqueID("way", el_id)
 
-        for nd in el.iterfind('nd'):
-            way_id = get_required_attribute(nd, 'ref')
-            feature.components.append(makeOsmUniqueID('node', way_id))
+        for nd in el.iterfind("nd"):
+            way_id = get_required_attribute(nd, "ref")
+            feature.components.append(makeOsmUniqueID("node", way_id))
 
-        for tag_list in el.iterfind('tag'):
+        for tag_list in el.iterfind("tag"):
             kv = get_tag(tag_list)
             if kv != None:
                 feature.props.append(kv)
@@ -180,23 +185,23 @@ def get_osm(url, bounds):
         gmap.features.append(feature)
 
     # get relations
-    for el in osm.iterfind('relation'):
+    for el in osm.iterfind("relation"):
 
         feature = MapFeature()
-        el_id = el.get('id')
+        el_id = el.get("id")
         if el_id is None:
-            raise ValueError('relation id missing')
-        feature.id = makeOsmUniqueID('relation', el_id)
+            raise ValueError("relation id missing")
+        feature.id = makeOsmUniqueID("relation", el_id)
 
-        for mbr in el.iterfind('member'):
-            mbr_type = get_required_attribute(mbr, 'type')
-            if mbr_type in set(['node', 'way', 'relation']):
-                mbr_id = get_required_attribute(mbr, 'ref')
+        for mbr in el.iterfind("member"):
+            mbr_type = get_required_attribute(mbr, "type")
+            if mbr_type in {"node", "way", "relation"}:
+                mbr_id = get_required_attribute(mbr, "ref")
                 feature.components.append(makeOsmUniqueID(mbr_type, mbr_id))
             else:
-                print('unknown relation member type: ' + mbr_type)
+                print("unknown relation member type: " + mbr_type)
 
-        for tag_list in el.iterfind('tag'):
+        for tag_list in el.iterfind("tag"):
             kv = get_tag(tag_list)
             if kv != None:
                 feature.props.append(kv)
@@ -205,37 +210,42 @@ def get_osm(url, bounds):
 
     return gmap
 
-interesting_tags = set(['access',
-                        'amenity',
-                        'boundary',
-                        'bridge',
-                        'building',
-                        'ele',
-                        'highway',
-                        'landuse',
-                        'lanes',
-                        'layer',
-                        'maxheight',
-                        'maxspeed',
-                        'maxwidth',
-                        'name',
-                        'network',
-                        'oneway',
-                        'railway',
-                        'ref',
-                        'restriction',
-                        'route',
-                        'street',
-                        'tunnel',
-                        'type',
-                        'width'])
+
+interesting_tags = {
+    "access",
+    "amenity",
+    "boundary",
+    "bridge",
+    "building",
+    "ele",
+    "highway",
+    "landuse",
+    "lanes",
+    "layer",
+    "maxheight",
+    "maxspeed",
+    "maxwidth",
+    "name",
+    "network",
+    "oneway",
+    "railway",
+    "ref",
+    "restriction",
+    "route",
+    "street",
+    "tunnel",
+    "type",
+    "width",
+}
 
 
-ignored_values = set(['bridleway',
-                      'construction',
-                      'cycleway',
-                      'footway',
-                      'path',
-                      'pedestrian',
-                      'proposed',
-                      'steps'])
+ignored_values = {
+    "bridleway",
+    "construction",
+    "cycleway",
+    "footway",
+    "path",
+    "pedestrian",
+    "proposed",
+    "steps",
+}

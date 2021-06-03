@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Software License Agreement (BSD License)
 #
 # Copyright (C) 2012, Jack O'Quin
@@ -39,10 +39,11 @@ Request geographic information maps from Open Street Map server.
 This is just a toy node, useful for testing.
 """
 
-from __future__ import print_function
 
-PKG_NAME = 'osm_cartography'
-import roslib; roslib.load_manifest(PKG_NAME)
+PKG_NAME = "osm_cartography"
+import roslib
+
+roslib.load_manifest(PKG_NAME)
 import rospy
 
 import sys
@@ -51,31 +52,34 @@ from geodesy import bounding_box
 
 from geographic_msgs.srv import GetGeographicMap
 
+
 def client_node(url):
 
-    rospy.init_node('osm_client')
-    rospy.wait_for_service('get_geographic_map')
+    rospy.init_node("osm_client")
+    rospy.wait_for_service("get_geographic_map")
 
     try:
-        get_map = rospy.ServiceProxy('get_geographic_map', GetGeographicMap)
+        get_map = rospy.ServiceProxy("get_geographic_map", GetGeographicMap)
         resp = get_map(url, bounding_box.makeGlobal())
         if resp.success:
             print(resp.map)
         else:
-            print('get_geographic_map failed, status: ', str(resp.status))
+            print("get_geographic_map failed, status: ", str(resp.status))
 
     except rospy.ServiceException, e:
         print("Service call failed: " + str(e))
 
-if __name__ == '__main__':
 
-    url = ''
+if __name__ == "__main__":
+
+    url = ""
     if len(sys.argv) == 2:
         url = sys.argv[1]
     else:
-        print('usage: osm_client <map_URL>')
+        print("usage: osm_client <map_URL>")
         sys.exit(-9)
 
     try:
         client_node(url)
-    except rospy.ROSInterruptException: pass
+    except rospy.ROSInterruptException:
+        pass
