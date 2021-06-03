@@ -1,6 +1,11 @@
 Change history
 ==============
 
+Forthcoming
+-----------
+* Migrate to Noetic
+* Contributors: Bence Magyar
+
 0.2.5 (2020-01-14)
 ------------------
 

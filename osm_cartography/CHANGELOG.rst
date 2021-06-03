@@ -1,6 +1,11 @@
 Change history
 ==============
 
+Forthcoming
+-----------
+* Migrate to Noetic
+* Contributors: Bence Magyar
+
 0.2.5 (2020-01-14)
 ------------------
 * Remove dependency on rviz from osm_cartography (`#18 <https://github.com/ros-geographic-info/open_street_map/issues/18>`_)
