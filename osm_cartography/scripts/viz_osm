@@ -104,22 +104,22 @@ class VizNode:
         road_props = set(["bridge", "highway", "tunnel"])
         fargs = [
             (
-                lambda (f): geodesy.props.match(f, road_props),
+                lambda f: geodesy.props.match(f, road_props),
                 ColorRGBA(r=8.0, g=0.2, b=0.2, a=0.8),
                 "roads_osm",
             ),
             (
-                lambda (f): geodesy.props.match(f, set(["building"])),
+                lambda f: geodesy.props.match(f, set(["building"])),
                 ColorRGBA(r=0.0, g=0.3, b=0.7, a=0.8),
                 "buildings_osm",
             ),
             (
-                lambda (f): geodesy.props.match(f, set(["railway"])),
+                lambda f: geodesy.props.match(f, set(["railway"])),
                 ColorRGBA(r=0.0, g=0.7, b=0.7, a=0.8),
                 "railroad_osm",
             ),
             (
-                lambda (f): geodesy.props.match(f, set(["amenity", "landuse"])),
+                lambda f: geodesy.props.match(f, set(["amenity", "landuse"])),
                 ColorRGBA(r=0.0, g=1.0, b=0.0, a=0.5),
                 "other_osm",
             ),
@@ -171,7 +171,7 @@ class VizNode:
                bridge, tunnel, amenity, etc.
         """
         index = 0
-        for feature in itertools.ifilter(predicate, self.map.features):
+        for feature in filter(predicate, self.map.features):
             marker = Marker(
                 header=self.map.header,
                 ns=namespace,
