@@ -100,26 +100,26 @@ class VizNode:
         self.mark_boundaries(ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.8))
         self.mark_way_points(ColorRGBA(r=1.0, g=1.0, b=0.0, a=0.8))
 
-        # define arguments for displaying various feature types
-        road_props = set(["bridge", "highway", "tunnel"])
+        # define arguments for displaying various feature types 2.11.21 added way types: road_border, centerline, stop_line and traffic_light
+        road_props = set(["bridge", "highway", "tunnel", "road_border"])
         fargs = [
             (
-                lambda (f): geodesy.props.match(f, road_props),
+                lambda f: geodesy.props.match(f, road_props),
                 ColorRGBA(r=8.0, g=0.2, b=0.2, a=0.8),
                 "roads_osm",
             ),
             (
-                lambda (f): geodesy.props.match(f, set(["building"])),
+                lambda f: geodesy.props.match(f, set(["building","traffic_light"])),
                 ColorRGBA(r=0.0, g=0.3, b=0.7, a=0.8),
                 "buildings_osm",
             ),
             (
-                lambda (f): geodesy.props.match(f, set(["railway"])),
+                lambda f: geodesy.props.match(f, set(["centerline", "stop_line"])),
                 ColorRGBA(r=0.0, g=0.7, b=0.7, a=0.8),
-                "railroad_osm",
+                "centerline_osm",
             ),
             (
-                lambda (f): geodesy.props.match(f, set(["amenity", "landuse"])),
+                lambda f: geodesy.props.match(f, set(["amenity", "landuse"])),
                 ColorRGBA(r=0.0, g=1.0, b=0.0, a=0.5),
                 "other_osm",
             ),
@@ -171,7 +171,7 @@ class VizNode:
                bridge, tunnel, amenity, etc.
         """
         index = 0
-        for feature in itertools.ifilter(predicate, self.map.features):
+        for feature in filter(predicate, self.map.features):
             marker = Marker(
                 header=self.map.header,
                 ns=namespace,
@@ -207,7 +207,7 @@ class VizNode:
                 id=index,
                 type=Marker.CYLINDER,
                 action=Marker.ADD,
-                scale=Vector3(x=2.0, y=2.0, z=0.2),
+                scale=Vector3(x=1.0, y=1.0, z=0.2),
                 color=color,
                 lifetime=self.marker_life,
             )
