@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 # Software License Agreement (BSD License)
 #
 # Copyright (C) 2013, Alexander Tiderko
@@ -113,7 +113,7 @@ class RvizGoalListener:
             self.gridZone = utm.gridZone()
             self.points = geodesy.wu_point.WuPointSet(graph.points)
             self.segment_ids = {}  # segments symbol table
-            for sid in xrange(len(graph.segments)):
+            for sid in range(len(graph.segments)):
                 self.segment_ids[graph.segments[sid].id.uuid] = sid
             self.graph = graph
 
@@ -186,9 +186,9 @@ class RvizGoalListener:
                 except (tf.Exception, tf.LookupException, tf.ConnectivityException):
                     import traceback
 
-                    print traceback.format_exc()
+                    print (traceback.format_exc())
             else:
-                print "no init pose"
+                print ("no init pose")
 
     def _pub_viz_path(self, path, start, goal, start_seg, end_seg, distance):
         """Publish visualization markers for a RoutePath.
