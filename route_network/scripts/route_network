@@ -75,6 +75,7 @@ def is_route(feature):
 
 
 # URL, unique to this package
+PKG_NAME= "geographic_msgs" #TODO: not sure if this the correct package you were referring to 
 PKG_URL = "http://ros.org/wiki/" + PKG_NAME
 
 
@@ -133,7 +134,7 @@ class RouteNetNode:
         self.graph = makeGraph(msg)
 
         # process each feature marked as a route
-        for feature in itertools.ifilter(is_route, self.map.features):
+        for feature in itertools.filterfalse(is_route, self.map.features):
             oneway = is_oneway(feature)
             start = None
             for mbr in feature.components:
